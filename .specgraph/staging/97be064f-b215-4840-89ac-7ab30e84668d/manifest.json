@@ -1,0 +1,10 @@
+{
+  "base_hashes": {},
+  "watch_paths": [
+    "src",
+    "pyproject.toml",
+    "requirements.txt",
+    "Dockerfile",
+    "package.json"
+  ]
+}

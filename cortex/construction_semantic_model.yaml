@@ -1,0 +1,246 @@
+# ============================================================================
+# GROUNDTRUTH Cortex Analyst Semantic Model
+# ============================================================================
+# This semantic model enables natural language querying of construction
+# geospatial data through Cortex Analyst.
+
+name: construction_geospatial_analytics
+description: |
+  Construction site geospatial analytics including equipment tracking,
+  earthwork volumes, haul road efficiency, and Ghost Cycle detection.
+
+# Data Model Definition
+tables:
+  - name: sites
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: RAW
+      table: SITES
+    description: Construction site master data with location and status
+    columns:
+      - name: site_id
+        description: Unique identifier for the construction site
+        synonyms: [project_id, job_id, location_id]
+      - name: site_name
+        description: Name of the construction project
+        synonyms: [project_name, job_name]
+      - name: site_type
+        description: Type of construction (highway, commercial, residential, etc.)
+      - name: latitude
+        description: GPS latitude of site center
+      - name: longitude
+        description: GPS longitude of site center
+      - name: status
+        description: Current operational status (active, completed, paused)
+
+  - name: equipment
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: RAW
+      table: EQUIPMENT
+    description: Equipment/vehicle master data including haul trucks, dozers, loaders
+    columns:
+      - name: equipment_id
+        description: Unique identifier for the equipment unit
+        synonyms: [vehicle_id, unit_id, truck_id]
+      - name: equipment_name
+        description: Display name for the equipment
+        synonyms: [vehicle_name, unit_name]
+      - name: equipment_type
+        description: Type of equipment (haul_truck, dozer, loader, grader)
+        synonyms: [vehicle_type, machine_type]
+      - name: make
+        description: Manufacturer (CAT, Komatsu, etc.)
+      - name: model
+        description: Equipment model number
+      - name: capacity_tons
+        description: Load capacity in tons
+
+  - name: gps_breadcrumbs
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: RAW
+      table: GPS_BREADCRUMBS
+    description: Real-time GPS position data for equipment tracking
+    time_dimension: timestamp
+    columns:
+      - name: equipment_id
+        description: Equipment this position belongs to
+      - name: timestamp
+        description: Time of GPS reading
+      - name: latitude
+        description: GPS latitude position
+      - name: longitude
+        description: GPS longitude position
+      - name: speed_mph
+        description: Equipment speed in miles per hour
+        synonyms: [velocity, travel_speed]
+      - name: heading_degrees
+        description: Direction of travel in degrees
+
+  - name: equipment_telematics
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: RAW
+      table: EQUIPMENT_TELEMATICS
+    description: Engine and operational telemetry data
+    time_dimension: timestamp
+    columns:
+      - name: equipment_id
+        description: Equipment this telemetry belongs to
+      - name: engine_load_percent
+        description: Engine load as percentage of capacity
+        synonyms: [load_factor, engine_utilization]
+      - name: fuel_rate_gph
+        description: Fuel consumption rate in gallons per hour
+        synonyms: [fuel_consumption, fuel_burn_rate]
+      - name: payload_tons
+        description: Current payload weight in tons
+        synonyms: [load_weight, haul_weight]
+
+  - name: cycle_events
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: RAW
+      table: CYCLE_EVENTS
+    description: Load and dump cycle tracking for haul trucks
+    time_dimension: cycle_start
+    columns:
+      - name: equipment_id
+        description: Truck that performed the cycle
+      - name: cycle_start
+        description: When the load/haul/dump cycle started
+      - name: cycle_end
+        description: When the cycle completed
+      - name: load_volume_yd3
+        description: Volume moved in cubic yards
+        synonyms: [volume_moved, haul_volume, yards_hauled]
+      - name: cycle_time_minutes
+        description: Total cycle time in minutes
+        synonyms: [cycle_duration, trip_time]
+      - name: fuel_consumed_gal
+        description: Fuel used for this cycle in gallons
+
+  - name: volume_surveys
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: RAW
+      table: VOLUME_SURVEYS
+    description: Cut and fill volume survey measurements
+    time_dimension: survey_date
+    columns:
+      - name: site_id
+        description: Site where survey was conducted
+      - name: zone_name
+        description: Name of the survey zone
+        synonyms: [area_name, section_name]
+      - name: cut_volume_yd3
+        description: Actual cut volume in cubic yards
+        synonyms: [excavation_volume, material_removed]
+      - name: fill_volume_yd3
+        description: Actual fill volume in cubic yards
+        synonyms: [placement_volume, material_placed]
+      - name: cut_plan_yd3
+        description: Planned cut volume in cubic yards
+      - name: fill_plan_yd3
+        description: Planned fill volume in cubic yards
+
+# Pre-defined Metrics
+metrics:
+  - name: total_volume_moved
+    description: Total cubic yards of material moved (cut + fill)
+    expression: SUM(cut_volume_yd3) + SUM(fill_volume_yd3)
+    base_table: volume_surveys
+    
+  - name: average_cycle_time
+    description: Average time per load/haul/dump cycle in minutes
+    expression: AVG(cycle_time_minutes)
+    base_table: cycle_events
+    
+  - name: fleet_utilization
+    description: Percentage of time equipment is actively working
+    expression: AVG(engine_load_percent)
+    base_table: equipment_telematics
+    
+  - name: fuel_efficiency
+    description: Cubic yards moved per gallon of fuel
+    expression: SUM(load_volume_yd3) / NULLIF(SUM(fuel_consumed_gal), 0)
+    base_table: cycle_events
+
+  - name: ghost_cycle_percentage
+    description: Percentage of operating time in Ghost Cycles
+    expression: |
+      SUM(CASE WHEN speed_mph > 2 AND engine_load_percent < 30 THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+    base_table: gps_breadcrumbs
+
+# Relationships
+relationships:
+  - name: equipment_to_site
+    left_table: equipment
+    right_table: sites
+    join_condition: equipment.site_id = sites.site_id
+    type: many_to_one
+    
+  - name: gps_to_equipment
+    left_table: gps_breadcrumbs
+    right_table: equipment
+    join_condition: gps_breadcrumbs.equipment_id = equipment.equipment_id
+    type: many_to_one
+    
+  - name: telematics_to_equipment
+    left_table: equipment_telematics
+    right_table: equipment
+    join_condition: equipment_telematics.equipment_id = equipment.equipment_id
+    type: many_to_one
+    
+  - name: cycles_to_equipment
+    left_table: cycle_events
+    right_table: equipment
+    join_condition: cycle_events.equipment_id = equipment.equipment_id
+    type: many_to_one
+    
+  - name: volumes_to_site
+    left_table: volume_surveys
+    right_table: sites
+    join_condition: volume_surveys.site_id = sites.site_id
+    type: many_to_one
+
+# Example Questions for Training
+sample_questions:
+  - question: "What is the total volume moved at Project Alpha?"
+    sql: |
+      SELECT SUM(cut_volume_yd3) + SUM(fill_volume_yd3) as total_volume
+      FROM CONSTRUCTION_GEO_DB.RAW.VOLUME_SURVEYS v
+      JOIN CONSTRUCTION_GEO_DB.RAW.SITES s ON v.site_id = s.site_id
+      WHERE s.site_name = 'Project Alpha'
+      
+  - question: "Which trucks have the highest idle time?"
+    sql: |
+      SELECT 
+        e.equipment_name,
+        AVG(CASE WHEN t.engine_load_percent < 20 THEN 1 ELSE 0 END) * 100 as idle_pct
+      FROM CONSTRUCTION_GEO_DB.RAW.EQUIPMENT e
+      JOIN CONSTRUCTION_GEO_DB.RAW.EQUIPMENT_TELEMATICS t ON e.equipment_id = t.equipment_id
+      WHERE e.equipment_type = 'haul_truck'
+      GROUP BY e.equipment_name
+      ORDER BY idle_pct DESC
+      LIMIT 10
+      
+  - question: "Show me the cycle count by site today"
+    sql: |
+      SELECT 
+        s.site_name,
+        COUNT(c.cycle_id) as cycle_count
+      FROM CONSTRUCTION_GEO_DB.RAW.CYCLE_EVENTS c
+      JOIN CONSTRUCTION_GEO_DB.RAW.SITES s ON c.site_id = s.site_id
+      WHERE DATE(c.cycle_start) = CURRENT_DATE()
+      GROUP BY s.site_name
+      
+  - question: "What is the average cycle time per equipment type?"
+    sql: |
+      SELECT 
+        e.equipment_type,
+        AVG(c.cycle_time_minutes) as avg_cycle_time
+      FROM CONSTRUCTION_GEO_DB.RAW.CYCLE_EVENTS c
+      JOIN CONSTRUCTION_GEO_DB.RAW.EQUIPMENT e ON c.equipment_id = e.equipment_id
+      GROUP BY e.equipment_type

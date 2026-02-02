@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-earth-900 text-stone-300 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer components {
+  /* Card styles */
+  .card {
+    @apply bg-earth-800/80 backdrop-blur border border-earth-700 rounded-xl;
+  }
+  
+  .card-glow {
+    box-shadow: 0 0 30px -5px rgba(245, 158, 11, 0.1);
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  
+  .card-hover:hover {
+    @apply border-accent-amber/30;
+    box-shadow: 0 0 40px -5px rgba(245, 158, 11, 0.15);
+  }
+
+  /* Status indicators */
+  .status-online {
+    @apply relative;
+  }
+  
+  .status-online::after {
+    content: '';
+    @apply absolute inset-0 rounded-full bg-accent-emerald animate-ping;
+  }
+
+  /* Metric glow */
+  .metric-glow {
+    text-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+  }
+
+  /* Alert glow */
+  .alert-glow {
+    box-shadow: 0 0 20px -5px rgba(239, 68, 68, 0.3);
+  }
+
+  /* Success glow */
+  .success-glow {
+    box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Animated grid background */
+  .animated-grid-bg {
+    background-image: 
+      linear-gradient(to right, rgba(61, 53, 46, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(61, 53, 46, 0.1) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridMove 20s linear infinite;
+  }
+
+  @keyframes gridMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 60px 60px; }
+  }
+
+  /* Topography pattern */
+  .topo-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Cg fill='none' stroke='%233d352e' stroke-width='0.5'%3E%3Cpath d='M0 200c50-50 100-100 200-100s150 50 200 100'/%3E%3Cpath d='M0 150c50-30 100-60 200-60s150 30 200 60'/%3E%3Cpath d='M0 250c50 30 100 60 200 60s150-30 200-60'/%3E%3Cpath d='M0 100c50-20 100-40 200-40s150 20 200 40'/%3E%3Cpath d='M0 300c50 20 100 40 200 40s150-20 200-40'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 400px 400px;
+  }
+
+  /* Ghost cycle highlight */
+  .ghost-cycle {
+    @apply border-l-4 border-safety-orange bg-orange-500/5;
+    animation: ghostPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes ghostPulse {
+    0%, 100% { background-color: rgba(234, 88, 12, 0.05); }
+    50% { background-color: rgba(234, 88, 12, 0.1); }
+  }
+
+  /* Choke point warning */
+  .choke-point {
+    @apply border-l-4 border-safety-red bg-red-500/5;
+    animation: chokePulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes chokePulse {
+    0%, 100% { background-color: rgba(220, 38, 38, 0.05); }
+    50% { background-color: rgba(220, 38, 38, 0.15); }
+  }
+
+  /* Chat input */
+  .chat-input {
+    @apply bg-earth-800/50 border border-earth-600 rounded-xl px-4 py-3 text-stone-200 
+           placeholder:text-stone-500 focus:outline-none focus:border-accent-amber/50 
+           focus:ring-1 focus:ring-accent-amber/20 transition-all duration-200;
+  }
+
+  /* Scrollbar styling */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-earth-600 rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-earth-500;
+  }
+
+  /* Equipment status indicator */
+  .equipment-active {
+    @apply relative;
+  }
+
+  .equipment-active::before {
+    content: '';
+    @apply absolute -left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-accent-emerald rounded-full;
+  }
+
+  /* Map marker styles */
+  .map-marker {
+    @apply w-4 h-4 rounded-full border-2 border-white shadow-lg cursor-pointer transition-transform duration-200;
+  }
+
+  .map-marker:hover {
+    @apply scale-125;
+  }
+
+  .map-marker-truck {
+    @apply bg-accent-amber;
+  }
+
+  .map-marker-excavator {
+    @apply bg-accent-cyan;
+  }
+
+  .map-marker-loader {
+    @apply bg-accent-emerald;
+  }
+
+  .map-marker-alert {
+    @apply bg-safety-red;
+    animation: markerPulse 1s ease-in-out infinite;
+  }
+
+  @keyframes markerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent-amber to-accent-orange;
+  }
+
+  .border-glow {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+}
