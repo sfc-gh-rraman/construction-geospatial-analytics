@@ -8,10 +8,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
-  LineChart,
   Line,
 } from 'recharts'
 

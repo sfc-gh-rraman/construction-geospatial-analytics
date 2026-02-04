@@ -1,15 +1,15 @@
 # ============================================================================
-# GROUNDTRUTH - Snowpark Container Services Specification
+# TERRA - Snowpark Container Services Specification
 # ============================================================================
 # Deploy to SPCS using:
-#   CREATE SERVICE groundtruth_service
+#   CREATE SERVICE terra_service
 #   IN COMPUTE POOL <your_pool>
 #   FROM SPECIFICATION_FILE = '@<stage>/service_spec.yaml';
 
 spec:
   containers:
-    - name: groundtruth
-      image: /construction_geo_db/construction_geo/groundtruth_repo/groundtruth:latest
+    - name: terra
+      image: /construction_geo_db/construction_geo/terra_repo/terra:latest
       env:
         SNOWFLAKE_DATABASE: CONSTRUCTION_GEO_DB
         SNOWFLAKE_SCHEMA: CONSTRUCTION_GEO
@@ -28,7 +28,7 @@ spec:
         - name: logs
           mountPath: /var/log
   endpoints:
-    - name: groundtruth
+    - name: terra
       port: 8080
       public: true
   volumes:

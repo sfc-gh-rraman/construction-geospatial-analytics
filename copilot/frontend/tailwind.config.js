@@ -7,64 +7,91 @@ export default {
   theme: {
     extend: {
       colors: {
-        // GroundTruth Construction color palette - Earth tones with tech accents
-        earth: {
-          900: '#1a1614',
-          800: '#292420',
-          700: '#3d352e',
-          600: '#534a41',
-          500: '#6b5f54',
-          400: '#8c7f73',
+        // Deep navy theme matching ATLAS pattern
+        navy: {
+          950: '#0a0d14',
+          900: '#0d1117',
+          800: '#161b22',
+          700: '#21262d',
+          600: '#30363d',
+          500: '#484f58',
         },
-        stone: {
-          400: '#a8a29e',
-          300: '#d6d3d1',
-          200: '#e7e5e4',
-        },
-        accent: {
+        // TERRA accent colors - warm construction palette
+        terra: {
           amber: '#f59e0b',
-          emerald: '#10b981',
-          cyan: '#06b6d4',
-          red: '#ef4444',
-          orange: '#f97316',
-          lime: '#84cc16',
-        },
-        // Safety colors
-        safety: {
-          green: '#22c55e',
-          yellow: '#eab308',
-          red: '#dc2626',
           orange: '#ea580c',
+          green: '#22c55e',
+          red: '#ef4444',
+          purple: '#a855f7',
+          cyan: '#06b6d4',
+        },
+        // Slate for text
+        slate: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
         }
       },
       fontFamily: {
-        sans: ['DM Sans', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-        display: ['Outfit', 'system-ui', 'sans-serif'],
+        sans: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'slide-up': 'slideUp 0.3s ease-out',
+        'grid-flow': 'gridFlow 20s linear infinite',
+        'scan-line': 'scanLine 4s linear infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
         'fade-in': 'fadeIn 0.5s ease-out',
-        'truck-move': 'truckMove 8s linear infinite',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'slide-in-right': 'slideInRight 0.3s ease-out',
+        'scale-in': 'scaleIn 0.2s ease-out',
+        'typing': 'typing 3s steps(40) 1s 1 normal both',
       },
       keyframes: {
-        slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: 0 },
-          '100%': { transform: 'translateY(0)', opacity: 1 },
+        gridFlow: {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(-50%)' },
+        },
+        scanLine: {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100vh)' },
+        },
+        glow: {
+          '0%': { boxShadow: '0 0 5px rgba(245, 158, 11, 0.5), 0 0 10px rgba(245, 158, 11, 0.3)' },
+          '100%': { boxShadow: '0 0 10px rgba(245, 158, 11, 0.8), 0 0 20px rgba(245, 158, 11, 0.5)' },
         },
         fadeIn: {
-          '0%': { opacity: 0 },
-          '100%': { opacity: 1 },
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
-        truckMove: {
-          '0%, 100%': { transform: 'translateX(0)' },
-          '50%': { transform: 'translateX(100px)' },
-        }
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideInRight: {
+          '0%': { opacity: '0', transform: 'translateX(20px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        typing: {
+          '0%': { width: '0' },
+          '100%': { width: '100%' },
+        },
       },
       backgroundImage: {
-        'topography': "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23292420' stroke-width='1'%3E%3Cpath d='M0 100c20-20 40-40 100-40s80 20 100 40'/%3E%3Cpath d='M0 60c20-10 40-20 100-20s80 10 100 20'/%3E%3Cpath d='M0 140c20 10 40 20 100 20s80-10 100-20'/%3E%3C/g%3E%3C/svg%3E\")",
-      }
+        'grid-pattern': `linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+                         linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px)`,
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      },
+      backgroundSize: {
+        'grid': '40px 40px',
+      },
     },
   },
   plugins: [],

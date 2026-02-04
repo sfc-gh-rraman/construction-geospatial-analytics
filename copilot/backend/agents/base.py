@@ -1,5 +1,5 @@
 """
-Base Agent class for GroundTruth Construction Co-Pilot
+Base Agent class for Terra Construction Co-Pilot
 """
 
 from abc import ABC, abstractmethod
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseAgent(ABC):
-    """Abstract base class for all GroundTruth Co-Pilot agents"""
+    """Abstract base class for all Terra Co-Pilot agents"""
     
     def __init__(self, name: str, description: str):
         self.name = name

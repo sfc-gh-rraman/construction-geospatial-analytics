@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Brain, BarChart3, TrendingUp, Target, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Brain, BarChart3, TrendingUp, Target, CheckCircle } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts'
 
 interface FeatureImportance {
@@ -21,9 +21,6 @@ interface Model {
   features: FeatureImportance[]
   metrics: ModelMetric[]
 }
-
-// Use relative URL for SPCS compatibility
-const API_BASE = ''
 
 export function MLExplainability() {
   const [selectedModel, setSelectedModel] = useState<string>('GHOST_CYCLE_DETECTOR')
@@ -88,7 +85,8 @@ export function MLExplainability() {
     },
   ])
 
-  const [loading, setLoading] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const [_loading, setLoading] = useState(false)
 
   const currentModel = models.find(m => m.name === selectedModel)
 

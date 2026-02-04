@@ -1,100 +1,154 @@
-import { ReactNode } from 'react'
 import { 
-  Truck, 
+  LayoutDashboard, 
   Map, 
-  BarChart3, 
-  Brain, 
-  GitBranch,
-  MessageSquare
+  Truck, 
+  Coffee,
+  BookOpen,
+  Cpu,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  Mountain,
+  Compass,
+  AlertTriangle
 } from 'lucide-react'
+import { useState } from 'react'
+import type { Page } from '../App'
 
 interface LayoutProps {
-  children: ReactNode
-  currentPage: string
-  onNavigate: (page: any) => void
+  children: React.ReactNode
+  currentPage: Page
+  onNavigate: (page: Page) => void
 }
 
+const navItems = [
+  { id: 'regional' as Page, label: 'Regional Command', icon: LayoutDashboard },
+  { id: 'siteops' as Page, label: 'Site Operations', icon: Map },
+  { id: 'equipment' as Page, label: 'Equipment Map', icon: Truck },
+  { id: 'ghost' as Page, label: 'Ghost Cycle Detection', icon: AlertTriangle },
+  { id: 'earthwork' as Page, label: 'Earthwork Analytics', icon: Mountain },
+  { id: 'brief' as Page, label: 'Daily Site Brief', icon: Coffee },
+  { id: 'docs' as Page, label: 'Document Search', icon: BookOpen },
+  { id: 'architecture' as Page, label: 'Architecture', icon: Cpu },
+]
+
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
-  const navItems = [
-    { id: 'command', label: 'Command Center', icon: MessageSquare },
-    { id: 'fleet', label: 'Fleet Overview', icon: Truck },
-    { id: 'map', label: 'Site Map', icon: Map },
-    { id: 'ml', label: 'ML Insights', icon: BarChart3 },
-    { id: 'architecture', label: 'Architecture', icon: GitBranch },
-  ]
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   return (
-    <div className="min-h-screen bg-earth-900 flex">
+    <div className="h-screen flex overflow-hidden bg-navy-950">
       {/* Sidebar */}
-      <nav className="w-64 bg-earth-800/50 border-r border-earth-700 flex flex-col">
+      <aside 
+        className={`
+          ${isCollapsed ? 'w-16' : 'w-64'} 
+          flex-shrink-0 bg-navy-900 border-r border-navy-700/50 
+          flex flex-col transition-all duration-300
+        `}
+      >
         {/* Logo */}
-        <div className="p-6 border-b border-earth-700">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-amber to-accent-orange flex items-center justify-center">
-              <Truck size={20} className="text-white" />
-            </div>
-            <div>
-              <h1 className="font-display font-semibold text-stone-200">GroundTruth</h1>
-              <p className="text-xs text-stone-500">Construction Analytics</p>
-            </div>
-          </div>
+        <div className="h-16 flex items-center justify-between px-4 border-b border-navy-700/50">
+          {!isCollapsed && (
+            <button 
+              onClick={() => onNavigate('landing')}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-terra-amber to-terra-orange flex items-center justify-center">
+                <Compass size={16} className="text-white" />
+              </div>
+              <div>
+                <span className="font-display font-bold text-lg text-white">TERRA</span>
+                <span className="text-xs text-slate-500 block -mt-1">Geospatial Analytics</span>
+              </div>
+            </button>
+          )}
+          <button 
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-1.5 hover:bg-navy-700 rounded-md text-slate-400 hover:text-white transition-colors"
+          >
+            {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 p-4">
-          <div className="space-y-1">
-            {navItems.map((item) => (
+        <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = currentPage === item.id
+            return (
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                  currentPage === item.id
-                    ? 'bg-accent-amber/10 text-accent-amber border border-accent-amber/20'
-                    : 'text-stone-400 hover:text-stone-200 hover:bg-earth-700/50'
-                }`}
+                className={`
+                  w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+                  transition-all duration-200 group
+                  ${isActive 
+                    ? 'bg-terra-amber/10 text-terra-amber' 
+                    : 'text-slate-400 hover:text-white hover:bg-navy-700/50'
+                  }
+                `}
               >
-                <item.icon size={18} />
-                <span className="text-sm font-medium">{item.label}</span>
+                <item.icon 
+                  size={20} 
+                  className={isActive ? 'text-terra-amber' : 'text-slate-500 group-hover:text-terra-amber/60'}
+                />
+                {!isCollapsed && <span>{item.label}</span>}
+                {isActive && !isCollapsed && (
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-terra-amber" />
+                )}
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Site Selector */}
-        <div className="p-4 border-t border-earth-700">
-          <div className="card p-3">
-            <p className="text-xs text-stone-500 mb-2">Active Site</p>
-            <select className="w-full bg-earth-700 border border-earth-600 rounded-lg px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-accent-amber/50">
-              <option value="ALPHA">Site ALPHA - Highway 101</option>
-              <option value="BETA">Site BETA - Downtown</option>
-              <option value="GAMMA">Site GAMMA - Industrial</option>
-              <option value="DELTA">Site DELTA - Residential</option>
-            </select>
-          </div>
-        </div>
+            )
+          })}
+        </nav>
 
         {/* System Status */}
-        <div className="p-4 border-t border-earth-700">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <Brain size={14} className="text-accent-amber" />
-              <span className="text-stone-500">ML Models</span>
+        <div className="p-4 border-t border-navy-700/50">
+          {!isCollapsed ? (
+            <div className="text-xs">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-slate-500">System Status</span>
+                <span className="flex items-center gap-1 text-terra-green">
+                  <Activity size={12} />
+                  Online
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-500">
+                <div className="flex -space-x-1">
+                  <div className="w-2 h-2 rounded-full bg-terra-green" />
+                  <div className="w-2 h-2 rounded-full bg-terra-green" />
+                  <div className="w-2 h-2 rounded-full bg-terra-green" />
+                  <div className="w-2 h-2 rounded-full bg-terra-green" />
+                </div>
+                <span>4 Agents Active</span>
+              </div>
             </div>
-            <span className="text-accent-emerald">3 Active</span>
-          </div>
-          <div className="flex items-center justify-between text-xs mt-2">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-accent-emerald status-online" />
-              <span className="text-stone-500">API Status</span>
+          ) : (
+            <div className="flex justify-center">
+              <div className="w-2 h-2 rounded-full bg-terra-green animate-pulse" />
             </div>
-            <span className="text-accent-emerald">Online</span>
-          </div>
+          )}
         </div>
-      </nav>
+      </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden">
-        {children}
+      <main className="flex-1 overflow-hidden flex flex-col">
+        {/* Top bar */}
+        <header className="h-14 flex-shrink-0 border-b border-navy-700/50 flex items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <h1 className="font-display font-semibold text-lg text-white">
+              {navItems.find(n => n.id === currentPage)?.label || 'TERRA'}
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <span className="w-2 h-2 rounded-full bg-terra-green animate-pulse" />
+              Snowflake Cortex Connected
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <div className="flex-1 overflow-auto">
+          {children}
+        </div>
       </main>
     </div>
   )

@@ -2,171 +2,466 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-earth-900 text-stone-300 antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  }
+/* TERRA Base styles */
+:root {
+  --terra-amber: #f59e0b;
+  --terra-orange: #ea580c;
+  --terra-green: #22c55e;
+  --terra-red: #ef4444;
+  --terra-purple: #a855f7;
+  --terra-cyan: #06b6d4;
 }
 
+html, body, #root {
+  @apply h-full;
+}
+
+body {
+  @apply bg-navy-950 text-slate-100 antialiased;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-navy-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-navy-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-navy-500;
+}
+
+/* Animated grid background */
+.animated-grid-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.animated-grid-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridFlow 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Scan line effect */
+.scan-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--terra-cyan), transparent);
+  animation: scanLine 4s linear infinite;
+  opacity: 0.3;
+}
+
+/* Glow effects */
+.glow-amber {
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3), 0 0 20px rgba(245, 158, 11, 0.1);
+}
+
+.glow-green {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3), 0 0 20px rgba(34, 197, 94, 0.1);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.3), 0 0 20px rgba(234, 179, 8, 0.1);
+}
+
+.glow-red {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3), 0 0 20px rgba(239, 68, 68, 0.1);
+}
+
+.glow-purple {
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3), 0 0 20px rgba(168, 85, 247, 0.1);
+}
+
+/* Card styles */
 @layer components {
-  /* Card styles */
   .card {
-    @apply bg-earth-800/80 backdrop-blur border border-earth-700 rounded-xl;
+    @apply bg-navy-800/80 border border-navy-600/50 rounded-lg backdrop-blur-sm p-4;
   }
-  
-  .card-glow {
-    box-shadow: 0 0 30px -5px rgba(245, 158, 11, 0.1);
-  }
-  
+
   .card-hover {
-    @apply transition-all duration-300;
-  }
-  
-  .card-hover:hover {
-    @apply border-accent-amber/30;
-    box-shadow: 0 0 40px -5px rgba(245, 158, 11, 0.15);
+    @apply card hover:border-terra-amber/30 hover:bg-navy-700/80 transition-all duration-300;
   }
 
-  /* Status indicators */
-  .status-online {
-    @apply relative;
-  }
-  
-  .status-online::after {
-    content: '';
-    @apply absolute inset-0 rounded-full bg-accent-emerald animate-ping;
+  .card-glow {
+    @apply card;
+    box-shadow: 
+      0 0 0 1px rgba(245, 158, 11, 0.1),
+      0 4px 20px rgba(0, 0, 0, 0.3);
   }
 
-  /* Metric glow */
-  .metric-glow {
-    text-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+  /* Button styles */
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 flex items-center gap-2;
   }
 
-  /* Alert glow */
-  .alert-glow {
-    box-shadow: 0 0 20px -5px rgba(239, 68, 68, 0.3);
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-terra-amber to-terra-orange hover:opacity-90 text-white;
   }
 
-  /* Success glow */
-  .success-glow {
-    box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.3);
+  .btn-secondary {
+    @apply btn bg-navy-700 hover:bg-navy-600 text-slate-100 border border-navy-600;
   }
 
-  /* Animated grid background */
-  .animated-grid-bg {
-    background-image: 
-      linear-gradient(to right, rgba(61, 53, 46, 0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(61, 53, 46, 0.1) 1px, transparent 1px);
-    background-size: 60px 60px;
-    animation: gridMove 20s linear infinite;
+  .btn-ghost {
+    @apply btn bg-transparent hover:bg-navy-700/50 text-slate-300;
   }
 
-  @keyframes gridMove {
-    0% { background-position: 0 0; }
-    100% { background-position: 60px 60px; }
+  .btn-danger {
+    @apply btn bg-terra-red/20 hover:bg-terra-red/30 text-terra-red border border-terra-red/30;
   }
 
-  /* Topography pattern */
-  .topo-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Cg fill='none' stroke='%233d352e' stroke-width='0.5'%3E%3Cpath d='M0 200c50-50 100-100 200-100s150 50 200 100'/%3E%3Cpath d='M0 150c50-30 100-60 200-60s150 30 200 60'/%3E%3Cpath d='M0 250c50 30 100 60 200 60s150-30 200-60'/%3E%3Cpath d='M0 100c50-20 100-40 200-40s150 20 200 40'/%3E%3Cpath d='M0 300c50 20 100 40 200 40s150-20 200-40'/%3E%3C/g%3E%3C/svg%3E");
-    background-size: 400px 400px;
+  /* Input styles */
+  .input {
+    @apply w-full px-4 py-2 bg-navy-800 border border-navy-600 rounded-md text-slate-100 
+           placeholder-slate-500 focus:outline-none focus:border-terra-amber focus:ring-1 
+           focus:ring-terra-amber/50 transition-all duration-200;
   }
 
-  /* Ghost cycle highlight */
-  .ghost-cycle {
-    @apply border-l-4 border-safety-orange bg-orange-500/5;
-    animation: ghostPulse 2s ease-in-out infinite;
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
   }
 
-  @keyframes ghostPulse {
-    0%, 100% { background-color: rgba(234, 88, 12, 0.05); }
-    50% { background-color: rgba(234, 88, 12, 0.1); }
+  .badge-amber {
+    @apply badge bg-terra-amber/20 text-terra-amber;
   }
 
-  /* Choke point warning */
-  .choke-point {
-    @apply border-l-4 border-safety-red bg-red-500/5;
-    animation: chokePulse 1.5s ease-in-out infinite;
+  .badge-green {
+    @apply badge bg-terra-green/20 text-terra-green;
   }
 
-  @keyframes chokePulse {
-    0%, 100% { background-color: rgba(220, 38, 38, 0.05); }
-    50% { background-color: rgba(220, 38, 38, 0.15); }
+  .badge-yellow {
+    @apply badge bg-yellow-500/20 text-yellow-400;
   }
 
-  /* Chat input */
-  .chat-input {
-    @apply bg-earth-800/50 border border-earth-600 rounded-xl px-4 py-3 text-stone-200 
-           placeholder:text-stone-500 focus:outline-none focus:border-accent-amber/50 
-           focus:ring-1 focus:ring-accent-amber/20 transition-all duration-200;
+  .badge-red {
+    @apply badge bg-terra-red/20 text-terra-red;
   }
 
-  /* Scrollbar styling */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-earth-600 rounded-full;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-earth-500;
+  .badge-purple {
+    @apply badge bg-terra-purple/20 text-terra-purple;
   }
 
-  /* Equipment status indicator */
-  .equipment-active {
-    @apply relative;
+  /* Risk level badges */
+  .risk-critical {
+    @apply bg-terra-red/20 text-terra-red border border-terra-red/30;
   }
 
-  .equipment-active::before {
-    content: '';
-    @apply absolute -left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-accent-emerald rounded-full;
+  .risk-high {
+    @apply bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
   }
 
-  /* Map marker styles */
-  .map-marker {
-    @apply w-4 h-4 rounded-full border-2 border-white shadow-lg cursor-pointer transition-transform duration-200;
+  .risk-medium {
+    @apply bg-terra-amber/20 text-terra-amber border border-terra-amber/30;
   }
 
-  .map-marker:hover {
-    @apply scale-125;
-  }
-
-  .map-marker-truck {
-    @apply bg-accent-amber;
-  }
-
-  .map-marker-excavator {
-    @apply bg-accent-cyan;
-  }
-
-  .map-marker-loader {
-    @apply bg-accent-emerald;
-  }
-
-  .map-marker-alert {
-    @apply bg-safety-red;
-    animation: markerPulse 1s ease-in-out infinite;
-  }
-
-  @keyframes markerPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.3); }
+  .risk-low {
+    @apply bg-terra-green/20 text-terra-green border border-terra-green/30;
   }
 }
 
-@layer utilities {
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent-amber to-accent-orange;
-  }
+/* Metric gauge */
+.metric-gauge {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
 
-  .border-glow {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+.metric-gauge-circle {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.metric-gauge-bg {
+  fill: none;
+  stroke: rgba(245, 158, 11, 0.1);
+  stroke-width: 8;
+}
+
+.metric-gauge-fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease-out;
+}
+
+/* Pulse animation for alerts */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
   }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.pulse-ring {
+  animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Chat message animations */
+.chat-message {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--terra-amber);
+  animation: typing-bounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typing-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Map marker styles */
+.map-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-marker:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+  z-index: 10;
+}
+
+.map-marker-critical {
+  background: var(--terra-red);
+  box-shadow: 0 0 10px var(--terra-red), 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.map-marker-high {
+  background: var(--terra-amber);
+  box-shadow: 0 0 10px var(--terra-amber);
+}
+
+.map-marker-medium {
+  background: var(--terra-cyan);
+}
+
+.map-marker-low {
+  background: var(--terra-green);
+}
+
+/* Table styles */
+.table-terra {
+  @apply w-full;
+}
+
+.table-terra th {
+  @apply px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider 
+         bg-navy-800 border-b border-navy-600;
+}
+
+.table-terra td {
+  @apply px-4 py-3 text-sm border-b border-navy-700/50;
+}
+
+.table-terra tr:hover td {
+  @apply bg-navy-700/30;
+}
+
+/* Markdown styles for chat */
+.markdown-content h2 {
+  @apply text-lg font-semibold text-terra-amber mb-3 mt-4 first:mt-0;
+}
+
+.markdown-content h3 {
+  @apply text-base font-medium text-slate-200 mb-2 mt-3;
+}
+
+.markdown-content p {
+  @apply mb-3 text-slate-300;
+}
+
+.markdown-content ul {
+  @apply list-disc list-inside mb-3 space-y-1;
+}
+
+.markdown-content li {
+  @apply text-slate-300;
+}
+
+.markdown-content table {
+  @apply w-full mb-4 text-sm;
+}
+
+.markdown-content th {
+  @apply px-3 py-2 text-left bg-navy-700 text-slate-300 font-medium;
+}
+
+.markdown-content td {
+  @apply px-3 py-2 border-b border-navy-600/50;
+}
+
+.markdown-content strong {
+  @apply text-terra-amber font-semibold;
+}
+
+.markdown-content code {
+  @apply bg-navy-700 px-1.5 py-0.5 rounded text-terra-cyan text-sm;
+}
+
+.markdown-content hr {
+  @apply my-4 border-navy-600;
+}
+
+/* Chart tooltip */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+.custom-tooltip {
+  @apply bg-navy-800 border border-navy-600 rounded-lg p-3 shadow-xl;
+}
+
+/* Loading skeleton */
+.skeleton {
+  @apply bg-navy-700 rounded animate-pulse;
+}
+
+/* Alert banner */
+.alert-banner {
+  @apply px-4 py-3 rounded-lg flex items-center gap-3;
+}
+
+.alert-banner-critical {
+  @apply alert-banner bg-terra-red/10 border border-terra-red/30;
+}
+
+.alert-banner-warning {
+  @apply alert-banner bg-terra-amber/10 border border-terra-amber/30;
+}
+
+.alert-banner-info {
+  @apply alert-banner bg-terra-cyan/10 border border-terra-cyan/30;
+}
+
+.alert-banner-success {
+  @apply alert-banner bg-terra-green/10 border border-terra-green/30;
+}
+
+/* ===== TERRA Custom Leaflet Popup Styles ===== */
+.terra-popup .leaflet-popup-content-wrapper {
+  background: transparent !important;
+  border-radius: 0.5rem;
+  padding: 0;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(245, 158, 11, 0.2);
+}
+
+.terra-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.terra-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+.terra-popup .leaflet-popup-close-button {
+  color: #64748b !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 18px !important;
+  font-weight: 400 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+  background: rgba(30, 41, 59, 0.5) !important;
+  z-index: 10 !important;
+}
+
+.terra-popup .leaflet-popup-close-button:hover {
+  color: #f8fafc !important;
+  background: rgba(30, 41, 59, 0.8) !important;
+}
+
+/* Popup entrance animation */
+.terra-popup {
+  animation: popupFadeIn 0.2s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Status dot pulse animation */
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.terra-popup .animate-pulse {
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+/* Metric glow effect */
+.metric-glow {
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* Status online indicator */
+.status-online {
+  animation: statusPulse 2s ease-in-out infinite;
 }

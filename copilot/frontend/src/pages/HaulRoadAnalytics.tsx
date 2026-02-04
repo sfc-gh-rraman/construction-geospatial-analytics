@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react'
-import { Route, AlertTriangle, Truck, Fuel, Clock, DollarSign, MapPin, TrendingUp, Ghost } from 'lucide-react'
+import { useState } from 'react'
+import { Route, AlertTriangle, Fuel, Clock, DollarSign, MapPin, TrendingUp, Ghost } from 'lucide-react'
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -13,8 +11,8 @@ import {
   Cell,
   ReferenceLine,
   Area,
-  AreaChart,
   ComposedChart,
+  Line,
 } from 'recharts'
 
 // Sample cycle time distribution data showing bimodal distribution (bottleneck indicator)

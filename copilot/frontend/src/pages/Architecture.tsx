@@ -45,7 +45,7 @@ export function Architecture() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-display font-semibold text-stone-200">System Architecture</h1>
-            <p className="text-sm text-stone-400">GroundTruth Construction Co-Pilot technical overview</p>
+            <p className="text-sm text-stone-400">TERRA - Terrain & Equipment Route Resource Advisor</p>
           </div>
           <div className="flex items-center gap-2">
             <GitBranch size={20} className="text-accent-amber" />

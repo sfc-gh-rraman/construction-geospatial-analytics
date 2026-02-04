@@ -1,5 +1,5 @@
 -- ============================================================================
--- GROUNDTRUTH Construction Geospatial Analytics - Database Setup
+-- TERRA Construction Geospatial Analytics - Database Setup
 -- ============================================================================
 -- This script creates the database, schemas, and warehouses for the 
 -- construction geospatial analytics demo.

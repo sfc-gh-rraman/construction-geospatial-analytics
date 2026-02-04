@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { 
   Truck, 
-  Fuel, 
   Timer, 
   AlertTriangle, 
   Ghost,

@@ -256,7 +256,7 @@ export function DocumentSearch() {
 
               <div className="mt-6 pt-6 border-t border-navy-700 space-y-3">
                 <button className="btn-primary w-full">
-                  Ask GROUNDTRUTH About This Document
+                  Ask TERRA About This Document
                 </button>
                 <button className="w-full px-4 py-2 bg-navy-700 text-slate-300 rounded-lg hover:bg-navy-600 transition-colors">
                   Download PDF

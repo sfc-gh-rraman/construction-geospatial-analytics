@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Truck, Timer, Fuel, TrendingUp, Ghost, AlertTriangle } from 'lucide-react'
+import { Truck, Timer, TrendingUp, Ghost } from 'lucide-react'
 import { MetricCard } from '../components/MetricCard'
 
 interface Equipment {
@@ -25,7 +25,8 @@ export function FleetOverview() {
     { id: 'LD-301', type: 'loader', speed: 3.2, engineLoad: 65, fuelRate: 6.8, status: 'working', cyclesCompleted: 0, volumeToday: 0 },
   ])
 
-  const [summary, setSummary] = useState({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [summary, _setSummary] = useState({
     totalEquipment: 8,
     active: 6,
     ghostCycles: 1,

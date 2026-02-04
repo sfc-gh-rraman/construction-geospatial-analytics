@@ -1,4 +1,4 @@
-# GROUNDTRUTH 🏗️
+# TERRA 🏗️
 
 **Construction Site Intelligence Platform**
 
@@ -10,7 +10,7 @@ AI-powered copilot for construction earthwork operations, built on Snowflake wit
 
 ## 🎯 Overview
 
-GROUNDTRUTH reveals hidden inefficiencies in construction earthwork operations by correlating GPS telematics with operational data. The platform identifies **Ghost Cycles** - equipment that appears active but is burning fuel without productive work.
+TERRA reveals hidden inefficiencies in construction earthwork operations by correlating GPS telematics with operational data. The platform identifies **Ghost Cycles** - equipment that appears active but is burning fuel without productive work.
 
 ### Key Features
 
@@ -90,7 +90,7 @@ This insight comes from correlating GPS breadcrumbs with engine telematics - som
 
 **What is a Ghost Cycle?**
 
-Equipment appears "active" in traditional reports - GPS shows movement, and the unit is logged as operating. But GROUNDTRUTH correlates GPS speed with engine load to reveal the truth:
+Equipment appears "active" in traditional reports - GPS shows movement, and the unit is logged as operating. But TERRA correlates GPS speed with engine load to reveal the truth:
 
 | Metric | Normal Haul | Ghost Cycle |
 |--------|-------------|-------------|

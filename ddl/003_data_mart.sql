@@ -1,7 +1,7 @@
 -- ============================================================================
--- GROUNDTRUTH Construction Geospatial Analytics - Data Mart (CONSTRUCTION_GEO)
+-- TERRA Construction Geospatial Analytics - Data Mart (CONSTRUCTION_GEO)
 -- ============================================================================
--- Analytical views and tables for the GROUNDTRUTH application
+-- Analytical views and tables for the TERRA application
 
 USE DATABASE CONSTRUCTION_GEO_DB;
 USE SCHEMA CONSTRUCTION_GEO;

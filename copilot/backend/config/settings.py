@@ -1,5 +1,5 @@
 """
-Configuration settings for GroundTruth Construction Co-Pilot
+Configuration settings for Terra Construction Co-Pilot
 """
 
 from pydantic_settings import BaseSettings
@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment"""
     
     # Application
-    app_name: str = "GroundTruth Construction Co-Pilot"
+    app_name: str = "Terra Construction Co-Pilot"
     debug: bool = False
     
     # Snowflake

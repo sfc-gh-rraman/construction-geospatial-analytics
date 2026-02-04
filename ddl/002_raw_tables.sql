@@ -1,5 +1,5 @@
 -- ============================================================================
--- GROUNDTRUTH Construction Geospatial Analytics - RAW Schema Tables
+-- TERRA Construction Geospatial Analytics - RAW Schema Tables
 -- ============================================================================
 -- Raw data tables for ingesting GPS, telematics, and operational data
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 # ============================================================================
-# GROUNDTRUTH - SPCS Deployment Script
+# TERRA - SPCS Deployment Script
 # ============================================================================
-# This script builds and deploys GROUNDTRUTH to Snowpark Container Services.
+# This script builds and deploys TERRA to Snowpark Container Services.
 #
 # Prerequisites:
 # - Docker installed and running
@@ -15,13 +15,13 @@
 set -e
 
 # Configuration
-REPO_NAME="groundtruth_repo"
-IMAGE_NAME="groundtruth"
+REPO_NAME="terra_repo"
+IMAGE_NAME="terra"
 IMAGE_TAG="latest"
 DATABASE="CONSTRUCTION_GEO_DB"
 SCHEMA="CONSTRUCTION_GEO"
-COMPUTE_POOL="GROUNDTRUTH_POOL"
-SERVICE_NAME="groundtruth_service"
+COMPUTE_POOL="TERRA_POOL"
+SERVICE_NAME="terra_service"
 
 # Colors for output
 RED='\033[0;31m'
@@ -111,7 +111,7 @@ deploy() {
         FROM SPECIFICATION \$\$
 spec:
   containers:
-    - name: groundtruth
+    - name: terra
       image: /${DATABASE}/${SCHEMA}/${REPO_NAME}/${IMAGE_NAME}:${IMAGE_TAG}
       env:
         SNOWFLAKE_DATABASE: ${DATABASE}
@@ -128,10 +128,13 @@ spec:
         port: 8080
         path: /health
   endpoints:
-    - name: groundtruth
+    - name: terra
       port: 8080
       public: true
-\$\$"
+\$\$
+        EXTERNAL_ACCESS_INTEGRATIONS = (TERRA_MAP_TILES_ACCESS)
+        MIN_INSTANCES = 1
+        MAX_INSTANCES = 2"
     
     log_info "Waiting for service to start..."
     sleep 10
@@ -153,7 +156,7 @@ status() {
     snow sql -q "SHOW ENDPOINTS IN SERVICE ${DATABASE}.${SCHEMA}.${SERVICE_NAME}"
     
     log_info "Service logs:"
-    snow sql -q "SELECT * FROM TABLE(${DATABASE}.${SCHEMA}.${SERVICE_NAME}!GET_SERVICE_LOGS('groundtruth', 0, 50))"
+    snow sql -q "SELECT * FROM TABLE(${DATABASE}.${SCHEMA}.${SERVICE_NAME}!GET_SERVICE_LOGS('terra', 0, 50))"
 }
 
 # Main

@@ -1,5 +1,5 @@
 """
-Agent Orchestrator - Coordinates all agents for GroundTruth Co-Pilot
+Agent Orchestrator - Coordinates all agents for TERRA Co-Pilot
 Uses intent classification to route to appropriate agents
 """
 
@@ -491,7 +491,7 @@ class AgentOrchestrator:
     async def _handle_general(self, message: str) -> Dict[str, Any]:
         """Handle general questions"""
         response = """
-🏗️ **GroundTruth Construction Co-Pilot**
+🏗️ **Terra Construction Co-Pilot**
 
 I can help you with:
 

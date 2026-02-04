@@ -1,12 +1,9 @@
-# ============================================================================
-# GROUNDTRUTH - Multi-stage Dockerfile for SPCS Deployment
-# ============================================================================
-# Stage 1: Build React frontend
-# Stage 2: Python runtime with nginx for serving
+# TERRA Geospatial Analytics - SPCS Container
+# Multi-stage build: React frontend + FastAPI backend
 
-# ------------------------------------------------------------------------------
+# =============================================================================
 # Stage 1: Build React Frontend
-# ------------------------------------------------------------------------------
+# =============================================================================
 FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
@@ -17,61 +14,66 @@ COPY frontend/package*.json ./
 # Install dependencies
 RUN npm ci --silent
 
-# Copy frontend source
+# Copy source code
 COPY frontend/ ./
 
 # Build production bundle
 RUN npm run build
 
-# ------------------------------------------------------------------------------
-# Stage 2: Python Runtime with Nginx
-# ------------------------------------------------------------------------------
+# =============================================================================
+# Stage 2: Production Runtime
+# =============================================================================
 FROM python:3.11-slim
 
-# Install nginx and other dependencies
+# Install nginx and supervisor
 RUN apt-get update && apt-get install -y \
     nginx \
-    curl \
     supervisor \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
 # Copy Python requirements and install
-COPY backend/requirements.txt ./
+COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code
 COPY backend/ ./backend/
 
-# Copy built frontend from builder stage
+# Copy built frontend from stage 1
 COPY --from=frontend-builder /app/frontend/dist /usr/share/nginx/html
 
 # Copy nginx configuration
 COPY deploy/nginx.conf /etc/nginx/nginx.conf
 
-# Copy supervisor configuration (if using)
+# Copy supervisor configuration
 COPY deploy/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Create startup script
+# Create log directories
+RUN mkdir -p /var/log/supervisor /var/log/nginx
+
+# Create startup script that shows logs
 RUN echo '#!/bin/bash\n\
-echo "Starting GROUNDTRUTH..."\n\
-echo "Environment: SPCS=${SNOWFLAKE_HOST:-local}"\n\
-\n\
-# Start nginx\n\
-nginx\n\
-\n\
-# Start FastAPI with uvicorn\n\
-exec python -m uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --log-level info\n\
+set -e\n\
+echo "=== TERRA GEOSPATIAL ANALYTICS STARTUP ===" \n\
+echo "Python version: $(python --version)" \n\
+echo "Working directory: $(pwd)" \n\
+echo "SNOWFLAKE_HOST: ${SNOWFLAKE_HOST:-NOT_SET}" \n\
+echo "Token file exists: $(test -f /snowflake/session/token && echo YES || echo NO)" \n\
+echo "Starting nginx..." \n\
+nginx \n\
+echo "Starting uvicorn..." \n\
+exec python -m uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --log-level info \n\
 ' > /app/start.sh && chmod +x /app/start.sh
 
-# Expose port (nginx listens on 8080, proxies to FastAPI on 8000)
+# Expose port (nginx will handle both frontend and API proxy)
 EXPOSE 8080
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
-# Start services
+# Start with script that shows logs
 CMD ["/bin/bash", "/app/start.sh"]

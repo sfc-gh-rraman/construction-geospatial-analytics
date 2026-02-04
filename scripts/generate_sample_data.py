@@ -1,5 +1,5 @@
 """
-GROUNDTRUTH Sample Data Generator
+TERRA Construction Site Data Generator
 
 Generates realistic construction site data with:
 - GPS breadcrumbs with real Phoenix, AZ coordinates
@@ -432,7 +432,7 @@ def generate_documents() -> pd.DataFrame:
 # ============================================================================
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate GROUNDTRUTH sample data")
+    parser = argparse.ArgumentParser(description="Generate TERRA sample data")
     parser.add_argument("--output", type=str, default="./data", help="Output directory")
     parser.add_argument("--format", type=str, choices=["parquet", "csv"], default="parquet")
     parser.add_argument("--hours", type=int, default=24, help="Hours of GPS data to generate")
@@ -441,7 +441,7 @@ def main():
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    print("Generating GROUNDTRUTH sample data...")
+    print("Generating TERRA sample data...")
     
     # Generate data
     print("  -> Sites...")

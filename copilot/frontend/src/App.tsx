@@ -1,32 +1,47 @@
 import { useState } from 'react'
 import { Layout } from './components/Layout'
 import { 
-  CommandCenter, 
-  FleetOverview, 
-  MLExplainability,
+  Landing,
+  RegionalOverview,
+  SiteCommand,
   SiteMap,
+  EarthworkProgress,
+  GhostCycleAnalysis,
+  DailyBriefing,
+  DocumentSearch,
   Architecture
 } from './pages'
 
-type Page = 'command' | 'fleet' | 'map' | 'ml' | 'architecture'
+export type Page = 'landing' | 'regional' | 'siteops' | 'equipment' | 'earthwork' | 'ghost' | 'brief' | 'docs' | 'architecture'
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('command')
+  const [currentPage, setCurrentPage] = useState<Page>('landing')
+
+  // Landing page without layout wrapper
+  if (currentPage === 'landing') {
+    return <Landing onNavigate={setCurrentPage} />
+  }
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'command':
-        return <CommandCenter />
-      case 'fleet':
-        return <FleetOverview />
-      case 'map':
+      case 'regional':
+        return <RegionalOverview />
+      case 'siteops':
+        return <SiteCommand />
+      case 'equipment':
         return <SiteMap />
-      case 'ml':
-        return <MLExplainability />
+      case 'earthwork':
+        return <EarthworkProgress />
+      case 'ghost':
+        return <GhostCycleAnalysis />
+      case 'brief':
+        return <DailyBriefing />
+      case 'docs':
+        return <DocumentSearch />
       case 'architecture':
         return <Architecture />
       default:
-        return <CommandCenter />
+        return <RegionalOverview />
     }
   }
 

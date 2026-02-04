@@ -1,8 +1,8 @@
-# GROUNDTRUTH - Handoff Guide
+# TERRA - Handoff Guide
 
 ## Overview
 
-GROUNDTRUTH is a construction site intelligence platform that reveals hidden inefficiencies in earthwork operations. This guide covers everything needed to understand, run, and extend the application.
+TERRA is a construction site intelligence platform that reveals hidden inefficiencies in earthwork operations. This guide covers everything needed to understand, run, and extend the application.
 
 ## Quick Reference
 
@@ -32,7 +32,7 @@ User → React UI → FastAPI → Agent Orchestrator → Snowflake/Cortex
 
 **What makes this demo unique:**
 
-Traditional fleet management shows equipment as "active" if it's moving. GROUNDTRUTH correlates GPS data with engine telematics to reveal the truth:
+Traditional fleet management shows equipment as "active" if it's moving. TERRA correlates GPS data with engine telematics to reveal the truth:
 
 ```python
 # Ghost Cycle Detection Logic
@@ -120,7 +120,7 @@ const res = await fetch('http://localhost:8000/api/chat', ...)
 ## Demo Script
 
 ### Opening (30 seconds)
-"This is GROUNDTRUTH - our construction site intelligence platform. It monitors 7 active sites, 152 equipment units, and 2.4 million GPS points."
+"This is TERRA - our construction site intelligence platform. It monitors 7 active sites, 152 equipment units, and 2.4 million GPS points."
 
 ### Hook - The Hidden Problem (1 minute)
 "Your cycle times look fine. Equipment reports show everyone active. But look at this..."
@@ -167,7 +167,7 @@ npm run dev
 2. Verify image repository permissions
 3. Review service logs:
 ```sql
-SELECT * FROM TABLE(groundtruth_service!GET_SERVICE_LOGS('groundtruth', 0, 50));
+SELECT * FROM TABLE(terra_service!GET_SERVICE_LOGS('terra', 0, 50));
 ```
 
 ### Chat returns demo responses

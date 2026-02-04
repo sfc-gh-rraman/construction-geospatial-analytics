@@ -1,5 +1,5 @@
 -- ============================================================================
--- GROUNDTRUTH Construction Geospatial Analytics - Cortex AI Services
+-- TERRA Construction Geospatial Analytics - Cortex AI Services
 -- ============================================================================
 -- Creates Cortex Search service for document retrieval
 
