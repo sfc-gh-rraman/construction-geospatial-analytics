@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { AlertTriangle, Truck, DollarSign, TrendingUp, Zap, Clock, MapPin, Brain, Target, CheckCircle } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE = ''
 
 interface GhostCyclePattern {
   totalGhostCycles: number
