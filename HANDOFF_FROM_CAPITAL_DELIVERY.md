@@ -326,7 +326,7 @@ System Prompt: |
 ## 📞 Support Resources
 
 - ATLAS Demo URL: `https://ayz3vu-sfpscogs-rraman-aws-si.snowflakecomputing.app`
-- Reference code: `/Users/rraman/Documents/construction_demos/construction/construction_capital_delivery/copilot`
+- Reference code: `construction_capital_delivery/copilot`
 - Cortex Agents REST API docs: [Snowflake Docs](https://docs.snowflake.com/en/developer-guide/cortex-agents/rest-api)
 
 ---

@@ -4,10 +4,10 @@
 
 You are building **TERRA** (Terrain & Equipment Route Resource Advisor), a "shock and awe" demo for Snowflake showcasing Geospatial Analytics for Construction & Equipment. This demo should replicate the architecture, patterns, and quality of the **ATLAS Capital Delivery** demo that has already been built.
 
-**Reference Demo Location:** `/Users/rraman/Documents/construction_demos/construction/construction_capital_delivery/copilot`
-**Your Project Location:** `/Users/rraman/Documents/construction_demos/construction/construction_geospatial_analytics`
-**Handoff Document:** `/Users/rraman/Documents/construction_demos/construction/construction_geospatial_analytics/HANDOFF_FROM_CAPITAL_DELIVERY.md`
-**DRD:** `/Users/rraman/Documents/construction_demos/construction/construction_geospatial_analytics/DRD.md`
+**Reference Demo Location:** `construction_capital_delivery/copilot`
+**Your Project Location:** `construction_geospatial_analytics`
+**Handoff Document:** `construction_geospatial_analytics/HANDOFF_FROM_CAPITAL_DELIVERY.md`
+**DRD:** `construction_geospatial_analytics/DRD.md`
 
 ---
 
@@ -193,7 +193,7 @@ CONSTRUCTION_GEO_DB
 
 1. First, read the DRD.md and HANDOFF_FROM_CAPITAL_DELIVERY.md
 2. Examine the existing code structure in the copilot folder
-3. Compare with the ATLAS reference at `/Users/rraman/Documents/construction_demos/construction/construction_capital_delivery/copilot`
+3. Compare with the ATLAS reference at `construction_capital_delivery/copilot`
 4. Begin by copying the critical files listed above
 5. Adapt the snowflake_service_spcs.py for geospatial queries
 6. Generate synthetic data with Ghost Cycle patterns

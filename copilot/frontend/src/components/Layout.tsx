@@ -10,7 +10,8 @@ import {
   Activity,
   Mountain,
   Compass,
-  AlertTriangle
+  AlertTriangle,
+  Brain
 } from 'lucide-react'
 import { useState } from 'react'
 import type { Page } from '../App'
@@ -19,6 +20,7 @@ interface LayoutProps {
   children: React.ReactNode
   currentPage: Page
   onNavigate: (page: Page) => void
+  selectedSiteId?: string | null
 }
 
 const navItems = [
@@ -26,13 +28,14 @@ const navItems = [
   { id: 'siteops' as Page, label: 'Site Operations', icon: Map },
   { id: 'equipment' as Page, label: 'Equipment Map', icon: Truck },
   { id: 'ghost' as Page, label: 'Ghost Cycle Detection', icon: AlertTriangle },
+  { id: 'ml' as Page, label: 'ML Explainability', icon: Brain },
   { id: 'earthwork' as Page, label: 'Earthwork Analytics', icon: Mountain },
   { id: 'brief' as Page, label: 'Daily Site Brief', icon: Coffee },
   { id: 'docs' as Page, label: 'Document Search', icon: BookOpen },
   { id: 'architecture' as Page, label: 'Architecture', icon: Cpu },
 ]
 
-export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
+export function Layout({ children, currentPage, onNavigate, selectedSiteId }: LayoutProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   return (
@@ -136,6 +139,12 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             <h1 className="font-display font-semibold text-lg text-white">
               {navItems.find(n => n.id === currentPage)?.label || 'TERRA'}
             </h1>
+            {selectedSiteId && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-terra-amber/10 rounded-full">
+                <Map size={14} className="text-terra-amber" />
+                <span className="text-sm text-terra-amber">{selectedSiteId}</span>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs text-slate-400">

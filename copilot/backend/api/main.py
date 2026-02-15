@@ -79,7 +79,7 @@ app = FastAPI(
 # CORS for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "http://localhost:5174"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -90,9 +90,14 @@ app.add_middleware(
 # Pydantic Models
 # ============================================================================
 
+class HistoryMessage(BaseModel):
+    role: str
+    content: str
+
 class ChatMessage(BaseModel):
     message: str
     site_id: Optional[str] = None
+    conversation_history: Optional[List[HistoryMessage]] = None
 
 
 class ChatResponse(BaseModel):
@@ -238,7 +243,12 @@ async def chat_stream(message: ChatMessage):
             # Yield initial thinking step
             yield f"data: {json.dumps({'type': 'thinking', 'title': 'Planning', 'content': 'Analyzing your question...'})}\n\n"
             
-            async for event in agent.run_agent(message.message):
+            # Convert history to list of dicts if provided
+            history = None
+            if message.conversation_history:
+                history = [{"role": m.role, "content": m.content} for m in message.conversation_history]
+            
+            async for event in agent.run_agent(message.message, history):
                 # Format as SSE
                 yield f"data: {json.dumps(event)}\n\n"
                 await asyncio.sleep(0.01)  # Small delay for smooth streaming
@@ -586,6 +596,184 @@ async def get_calibration_curve(model_name: str):
         return {"model": model_name, "calibration_data": results}
     except Exception as e:
         logger.error(f"Failed to get calibration for {model_name}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Cost Matrix & Profit Curve Endpoints (Business Value of ML)
+# ============================================================================
+
+@app.get("/api/ml/cost-assumptions")
+async def get_cost_assumptions(model_name: Optional[str] = None):
+    """
+    Get documented cost assumptions for ML models.
+    Shows the business logic: fuel cost, labor rates, etc.
+    """
+    try:
+        sf = get_snowflake_service()
+        results = sf.get_cost_assumptions(model_name)
+        return {"assumptions": results}
+    except Exception as e:
+        logger.error(f"Failed to get cost assumptions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/ml/cost-matrix/{model_name}")
+async def get_cost_matrix(model_name: str, site_id: Optional[str] = None, period_type: str = "MONTHLY"):
+    """
+    Get realized business costs from ML predictions.
+    Shows: true positives (savings), false positives (investigation cost), 
+           false negatives (missed opportunity cost), net value.
+    """
+    try:
+        sf = get_snowflake_service()
+        results = sf.get_cost_matrix(model_name, site_id, period_type)
+        
+        # Calculate summary stats
+        if results:
+            total_tp = sum(r.get("TRUE_POSITIVE_COUNT", 0) for r in results)
+            total_fp = sum(r.get("FALSE_POSITIVE_COUNT", 0) for r in results)
+            total_fn = sum(r.get("FALSE_NEGATIVE_COUNT", 0) for r in results)
+            total_savings = sum(r.get("TRUE_POSITIVE_VALUE_USD", 0) for r in results)
+            total_costs = sum(r.get("FALSE_POSITIVE_COST_USD", 0) + r.get("FALSE_NEGATIVE_COST_USD", 0) for r in results)
+            net_value = sum(r.get("NET_VALUE_USD", 0) for r in results)
+            
+            return {
+                "model": model_name,
+                "site_id": site_id,
+                "period_type": period_type,
+                "data": results,
+                "summary": {
+                    "total_true_positives": total_tp,
+                    "total_false_positives": total_fp,
+                    "total_false_negatives": total_fn,
+                    "total_savings_usd": round(total_savings, 2),
+                    "total_costs_usd": round(total_costs, 2),
+                    "net_value_usd": round(net_value, 2),
+                    "detection_rate": round(total_tp / (total_tp + total_fn), 3) if (total_tp + total_fn) > 0 else None,
+                    "precision": round(total_tp / (total_tp + total_fp), 3) if (total_tp + total_fp) > 0 else None
+                }
+            }
+        return {"model": model_name, "data": [], "summary": {}}
+    except Exception as e:
+        logger.error(f"Failed to get cost matrix for {model_name}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/ml/profit-curves/{model_name}")
+async def get_profit_curves(model_name: str, site_id: Optional[str] = None):
+    """
+    Get profit curves showing expected business value at different thresholds.
+    Helps determine optimal alert threshold for maximum business value.
+    """
+    try:
+        sf = get_snowflake_service()
+        results = sf.get_profit_curves(model_name, site_id)
+        
+        # Find optimal threshold
+        optimal = next((r for r in results if r.get("IS_OPTIMAL_THRESHOLD")), None)
+        
+        return {
+            "model": model_name,
+            "site_id": site_id,
+            "curves": results,
+            "optimal_threshold": {
+                "threshold": optimal.get("PROBABILITY_THRESHOLD") if optimal else 0.5,
+                "expected_daily_value": optimal.get("EXPECTED_NET_DAILY_VALUE_USD") if optimal else 0,
+                "detection_rate": optimal.get("EXPECTED_TP_RATE") if optimal else None,
+                "false_alarm_rate": optimal.get("EXPECTED_FP_RATE") if optimal else None
+            } if optimal else None,
+            "recommendation": f"Set alert threshold to {optimal.get('PROBABILITY_THRESHOLD', 0.5):.0%} for maximum daily value of ${optimal.get('EXPECTED_NET_DAILY_VALUE_USD', 0):.2f}" if optimal else None
+        }
+    except Exception as e:
+        logger.error(f"Failed to get profit curves for {model_name}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/ml/site-cost-summary")
+async def get_site_cost_summary(model_name: Optional[str] = None):
+    """
+    Get cost rollup by site - shows which sites are getting most value from ML.
+    """
+    try:
+        sf = get_snowflake_service()
+        results = sf.get_site_cost_summary(model_name)
+        return {"sites": results}
+    except Exception as e:
+        logger.error(f"Failed to get site cost summary: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/ml/portfolio-summary")
+async def get_portfolio_summary(model_name: Optional[str] = None):
+    """
+    Get portfolio-level cost summary - total value across all sites.
+    """
+    try:
+        sf = get_snowflake_service()
+        result = sf.get_portfolio_cost_summary(model_name)
+        return result
+    except Exception as e:
+        logger.error(f"Failed to get portfolio summary: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/ml/optimal-thresholds")
+async def get_optimal_thresholds(model_name: Optional[str] = None):
+    """
+    Get optimal decision thresholds for each model/site combination.
+    """
+    try:
+        sf = get_snowflake_service()
+        results = sf.get_optimal_thresholds(model_name)
+        return {"thresholds": results}
+    except Exception as e:
+        logger.error(f"Failed to get optimal thresholds: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/ml/executive-summary")
+async def get_executive_ml_summary():
+    """
+    Executive dashboard: Total ML value across portfolio by model.
+    Shows: "ML saved us $X this month across Y sites"
+    """
+    try:
+        sf = get_snowflake_service()
+        
+        models = ["GHOST_CYCLE_DETECTOR", "CHOKE_POINT_PREDICTOR", "CYCLE_TIME_OPTIMIZER"]
+        summaries = []
+        
+        for model in models:
+            portfolio = sf.get_portfolio_cost_summary(model)
+            if portfolio:
+                summaries.append({
+                    "model_name": model,
+                    "display_name": {
+                        "GHOST_CYCLE_DETECTOR": "Ghost Cycle Detection",
+                        "CHOKE_POINT_PREDICTOR": "Choke Point Prediction",
+                        "CYCLE_TIME_OPTIMIZER": "Cycle Time Optimization"
+                    }.get(model, model),
+                    "net_value_usd": portfolio.get("PORTFOLIO_NET_VALUE_USD", 0),
+                    "projected_annual_usd": portfolio.get("PROJECTED_ANNUAL_VALUE_USD", 0),
+                    "detection_rate": portfolio.get("PORTFOLIO_DETECTION_RATE", 0),
+                    "issues_caught": portfolio.get("TOTAL_TRUE_POSITIVES", 0),
+                    "issues_missed": portfolio.get("TOTAL_FALSE_NEGATIVES", 0)
+                })
+        
+        total_value = sum(s.get("net_value_usd", 0) for s in summaries)
+        total_annual = sum(s.get("projected_annual_usd", 0) for s in summaries)
+        
+        return {
+            "period": "MONTHLY",
+            "models": summaries,
+            "portfolio_total": {
+                "net_value_usd": round(total_value, 2),
+                "projected_annual_usd": round(total_annual, 2)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Failed to get executive summary: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

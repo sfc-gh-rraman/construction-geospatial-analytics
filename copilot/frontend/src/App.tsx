@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, createContext, useContext, ReactNode } from 'react'
 import { Layout } from './components/Layout'
 import { 
   Landing,
@@ -9,17 +9,57 @@ import {
   GhostCycleAnalysis,
   DailyBriefing,
   DocumentSearch,
-  Architecture
+  Architecture,
+  MLExplainability
 } from './pages'
 
-export type Page = 'landing' | 'regional' | 'siteops' | 'equipment' | 'earthwork' | 'ghost' | 'brief' | 'docs' | 'architecture'
+export type Page = 'landing' | 'regional' | 'siteops' | 'equipment' | 'earthwork' | 'ghost' | 'brief' | 'docs' | 'architecture' | 'ml'
 
-function App() {
+export interface NavigationContextType {
+  currentPage: Page
+  onNavigate: (page: Page) => void
+  selectedSiteId: string | null
+  setSelectedSiteId: (id: string | null) => void
+  selectedEquipmentId: string | null
+  setSelectedEquipmentId: (id: string | null) => void
+}
+
+const NavigationContext = createContext<NavigationContextType | null>(null)
+
+export function useNavigation() {
+  const context = useContext(NavigationContext)
+  if (!context) {
+    throw new Error('useNavigation must be used within NavigationProvider')
+  }
+  return context
+}
+
+export function NavigationProvider({ children }: { children: ReactNode }) {
   const [currentPage, setCurrentPage] = useState<Page>('landing')
+  const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null)
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null)
 
-  // Landing page without layout wrapper
+  const value: NavigationContextType = {
+    currentPage,
+    onNavigate: setCurrentPage,
+    selectedSiteId,
+    setSelectedSiteId,
+    selectedEquipmentId,
+    setSelectedEquipmentId,
+  }
+
+  return (
+    <NavigationContext.Provider value={value}>
+      {children}
+    </NavigationContext.Provider>
+  )
+}
+
+function AppContent() {
+  const { currentPage, onNavigate, selectedSiteId } = useNavigation()
+
   if (currentPage === 'landing') {
-    return <Landing onNavigate={setCurrentPage} />
+    return <Landing onNavigate={onNavigate} />
   }
 
   const renderPage = () => {
@@ -40,15 +80,25 @@ function App() {
         return <DocumentSearch />
       case 'architecture':
         return <Architecture />
+      case 'ml':
+        return <MLExplainability />
       default:
         return <RegionalOverview />
     }
   }
 
   return (
-    <Layout currentPage={currentPage} onNavigate={setCurrentPage}>
+    <Layout currentPage={currentPage} onNavigate={onNavigate} selectedSiteId={selectedSiteId}>
       {renderPage()}
     </Layout>
+  )
+}
+
+function App() {
+  return (
+    <NavigationProvider>
+      <AppContent />
+    </NavigationProvider>
   )
 }
 

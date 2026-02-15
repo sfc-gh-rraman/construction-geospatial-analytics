@@ -62,6 +62,7 @@ echo "Python version: $(python --version)" \n\
 echo "Working directory: $(pwd)" \n\
 echo "SNOWFLAKE_HOST: ${SNOWFLAKE_HOST:-NOT_SET}" \n\
 echo "Token file exists: $(test -f /snowflake/session/token && echo YES || echo NO)" \n\
+mkdir -p /var/log/nginx \n\
 echo "Starting nginx..." \n\
 nginx \n\
 echo "Starting uvicorn..." \n\

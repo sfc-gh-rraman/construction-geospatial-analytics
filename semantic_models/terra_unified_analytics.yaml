@@ -1,0 +1,745 @@
+name: terra_unified_analytics
+description: |
+  Unified Semantic Model for TERRA Construction Geospatial Analytics.
+  Integrates operational data with ML predictions and business cost analysis.
+  Enables natural language queries across fleet operations, ML insights, and financial impact.
+
+owner: terra_analytics_team
+version: "1.0"
+
+# ============================================================================
+# DATABASE CONTEXT
+# ============================================================================
+database: CONSTRUCTION_GEO_DB
+
+# ============================================================================
+# TABLES - Operational Entities
+# ============================================================================
+tables:
+  # ----- Core Operational Tables -----
+  - name: PROJECT
+    schema: ATOMIC
+    description: Construction sites/projects in the portfolio
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ATOMIC
+      table: PROJECT
+    columns:
+      - name: PROJECT_ID
+        description: Unique identifier for the construction site
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: PROJECT_NAME
+        description: Human-readable site name (e.g., "Phoenix Highway Expansion")
+        data_type: VARCHAR
+        synonyms: ["site name", "project name", "site", "location"]
+      - name: CITY
+        description: City where the project is located
+        data_type: VARCHAR
+      - name: STATE
+        description: State where the project is located
+        data_type: VARCHAR
+      - name: LATITUDE
+        description: Geographic latitude of project center
+        data_type: FLOAT
+      - name: LONGITUDE
+        description: Geographic longitude of project center
+        data_type: FLOAT
+      - name: STATUS
+        description: Current project status (ACTIVE, COMPLETED, ON_HOLD)
+        data_type: VARCHAR
+        synonyms: ["project status", "site status"]
+      - name: START_DATE
+        description: Project start date
+        data_type: DATE
+      - name: END_DATE
+        description: Planned or actual project end date
+        data_type: DATE
+
+  - name: ASSET
+    schema: ATOMIC
+    description: Heavy equipment and vehicles in the fleet
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ATOMIC
+      table: ASSET
+    columns:
+      - name: ASSET_ID
+        description: Unique equipment identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: ASSET_NAME
+        description: Equipment name/number (e.g., "CAT 793 #7")
+        data_type: VARCHAR
+        synonyms: ["equipment name", "truck name", "vehicle name"]
+      - name: ASSET_TYPE
+        description: Equipment category (HAUL_TRUCK, DOZER, GRADER, LOADER)
+        data_type: VARCHAR
+        synonyms: ["equipment type", "vehicle type"]
+      - name: MODEL_YEAR
+        description: Year of manufacture
+        data_type: INT
+      - name: CAPACITY
+        description: Load capacity in tons
+        data_type: FLOAT
+        synonyms: ["payload capacity", "load capacity"]
+      - name: PROJECT_ID
+        description: Site where equipment is currently assigned
+        data_type: VARCHAR
+        is_foreign_key: true
+        references:
+          table: PROJECT
+          column: PROJECT_ID
+
+  - name: ASSET_ACTIVITY_LOG
+    schema: ATOMIC
+    description: Equipment activity records with telematics data
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ATOMIC
+      table: ASSET_ACTIVITY_LOG
+    columns:
+      - name: ACTIVITY_LOG_ID
+        description: Unique activity record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: ASSET_ID
+        description: Equipment that performed this activity
+        data_type: VARCHAR
+        is_foreign_key: true
+        references:
+          table: ASSET
+          column: ASSET_ID
+      - name: TIMESTAMP
+        description: When the activity was recorded
+        data_type: TIMESTAMP_NTZ
+      - name: ACTIVITY_STATE
+        description: Equipment state (HAULING, IDLING, LOADING, DUMPING, MOVING)
+        data_type: VARCHAR
+        synonyms: ["status", "state", "activity"]
+      - name: CYCLE_TIME
+        description: Duration of this cycle in minutes
+        data_type: FLOAT
+        synonyms: ["cycle duration", "haul time"]
+      - name: FUEL_BURN
+        description: Fuel consumed during this activity (gallons)
+        data_type: FLOAT
+        synonyms: ["fuel consumption", "fuel used", "gallons burned"]
+      - name: ENGINE_LOAD_PCT
+        description: Average engine load percentage (0-100)
+        data_type: FLOAT
+        synonyms: ["engine load", "load percentage"]
+      - name: FUEL_RATE
+        description: Fuel consumption rate in gallons per hour
+        data_type: FLOAT
+        synonyms: ["fuel rate", "burn rate"]
+
+  - name: VOLUME_METRIC
+    schema: ATOMIC
+    description: Cut and fill volume measurements from surveys
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ATOMIC
+      table: VOLUME_METRIC
+    columns:
+      - name: METRIC_ID
+        description: Unique volume measurement identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: PROJECT_ID
+        description: Site where volume was measured
+        data_type: VARCHAR
+        is_foreign_key: true
+        references:
+          table: PROJECT
+          column: PROJECT_ID
+      - name: SURVEY_DATE
+        description: Date of the volume survey
+        data_type: DATE
+      - name: CUT_VOLUME
+        description: Material removed (cubic yards)
+        data_type: FLOAT
+        synonyms: ["cut", "excavated volume", "material removed"]
+      - name: FILL_VOLUME
+        description: Material placed (cubic yards)
+        data_type: FLOAT
+        synonyms: ["fill", "placed volume", "material added"]
+
+  # ----- ML Prediction Tables -----
+  - name: GHOST_CYCLE_PREDICTIONS
+    schema: ML
+    description: |
+      Real-time predictions from the Ghost Cycle Detector ML model.
+      A ghost cycle is equipment that appears active (GPS shows movement) 
+      but is actually wasting fuel (engine load < 30%).
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ML
+      table: GHOST_CYCLE_PREDICTIONS
+    columns:
+      - name: PREDICTION_ID
+        description: Unique prediction record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: EQUIPMENT_ID
+        description: Equipment flagged for potential ghost cycle
+        data_type: VARCHAR
+        is_foreign_key: true
+        references:
+          table: ASSET
+          column: ASSET_ID
+      - name: SITE_ID
+        description: Site where the ghost cycle was detected
+        data_type: VARCHAR
+        is_foreign_key: true
+        references:
+          table: PROJECT
+          column: PROJECT_ID
+      - name: TIMESTAMP
+        description: When the prediction was made
+        data_type: TIMESTAMP_NTZ
+      - name: GPS_SPEED_MPH
+        description: GPS-reported speed at prediction time
+        data_type: FLOAT
+        synonyms: ["speed", "velocity"]
+      - name: ENGINE_LOAD_PCT
+        description: Engine load percentage at prediction time
+        data_type: FLOAT
+        synonyms: ["engine load", "load"]
+      - name: IS_GHOST_CYCLE
+        description: Whether model classified this as a ghost cycle
+        data_type: BOOLEAN
+        synonyms: ["flagged", "detected", "is ghost"]
+      - name: GHOST_PROBABILITY
+        description: Model confidence in ghost cycle classification (0-1)
+        data_type: FLOAT
+        synonyms: ["probability", "confidence", "score"]
+      - name: ESTIMATED_FUEL_WASTE_GAL
+        description: Estimated gallons of fuel being wasted
+        data_type: FLOAT
+        synonyms: ["fuel waste", "wasted fuel", "fuel loss"]
+      - name: DURATION_MINUTES
+        description: Duration of the ghost cycle event
+        data_type: FLOAT
+        synonyms: ["duration", "length"]
+
+  - name: CHOKE_POINT_PREDICTIONS
+    schema: ML
+    description: |
+      Proactive predictions of traffic bottlenecks on haul roads.
+      Enables route advisors to divert trucks before queues form.
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ML
+      table: CHOKE_POINT_PREDICTIONS
+    columns:
+      - name: PREDICTION_ID
+        description: Unique prediction record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: SITE_ID
+        description: Site where choke point is predicted
+        data_type: VARCHAR
+        is_foreign_key: true
+        references:
+          table: PROJECT
+          column: PROJECT_ID
+      - name: ZONE_NAME
+        description: Named zone or intersection where choke point may form
+        data_type: VARCHAR
+        synonyms: ["location", "area", "zone"]
+      - name: ZONE_LAT
+        description: Latitude of predicted choke point
+        data_type: FLOAT
+      - name: ZONE_LNG
+        description: Longitude of predicted choke point
+        data_type: FLOAT
+      - name: CHOKE_PROBABILITY
+        description: Model confidence in choke point formation (0-1)
+        data_type: FLOAT
+        synonyms: ["probability", "likelihood", "confidence"]
+      - name: PREDICTED_SEVERITY
+        description: Expected severity (HIGH, MEDIUM, LOW)
+        data_type: VARCHAR
+        synonyms: ["severity", "impact level"]
+      - name: PREDICTED_WAIT_TIME_MIN
+        description: Expected queue wait time in minutes
+        data_type: FLOAT
+        synonyms: ["wait time", "delay", "queue time"]
+      - name: PREDICTED_TRUCKS_AFFECTED
+        description: Number of trucks expected to be impacted
+        data_type: INT
+        synonyms: ["trucks affected", "impacted trucks"]
+      - name: PREDICTED_ONSET_TIME
+        description: When the choke point is expected to form
+        data_type: TIMESTAMP_NTZ
+        synonyms: ["onset time", "start time"]
+      - name: RECOMMENDED_ACTION
+        description: Suggested mitigation action
+        data_type: VARCHAR
+        synonyms: ["recommendation", "action"]
+
+  # ----- ML Explainability Tables -----
+  - name: GLOBAL_FEATURE_IMPORTANCE
+    schema: ML
+    description: |
+      SHAP-based feature importance for each ML model.
+      Shows which features most strongly influence predictions.
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ML
+      table: GLOBAL_FEATURE_IMPORTANCE
+    columns:
+      - name: IMPORTANCE_ID
+        description: Unique record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: MODEL_NAME
+        description: Name of the ML model
+        data_type: VARCHAR
+        synonyms: ["model"]
+      - name: FEATURE_NAME
+        description: Name of the input feature
+        data_type: VARCHAR
+        synonyms: ["feature", "variable", "predictor"]
+      - name: SHAP_IMPORTANCE
+        description: Absolute mean SHAP value (higher = more important)
+        data_type: FLOAT
+        synonyms: ["importance", "shap value", "importance score"]
+      - name: IMPORTANCE_RANK
+        description: Rank of this feature (1 = most important)
+        data_type: INT
+        synonyms: ["rank", "position"]
+      - name: FEATURE_DIRECTION
+        description: Whether feature increases or decreases prediction (positive/negative)
+        data_type: VARCHAR
+        synonyms: ["direction", "effect direction"]
+
+  - name: MODEL_METRICS
+    schema: ML
+    description: Performance metrics for each ML model version
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ML
+      table: MODEL_METRICS
+    columns:
+      - name: METRIC_ID
+        description: Unique metric record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: MODEL_NAME
+        description: Name of the ML model
+        data_type: VARCHAR
+      - name: METRIC_NAME
+        description: Metric name (accuracy, precision, recall, f1, r2, rmse, mae)
+        data_type: VARCHAR
+        synonyms: ["metric", "measure"]
+      - name: METRIC_VALUE
+        description: Metric value
+        data_type: FLOAT
+        synonyms: ["value", "score"]
+      - name: METRIC_CONTEXT
+        description: Dataset context (train, test, validation, production)
+        data_type: VARCHAR
+      - name: SAMPLE_COUNT
+        description: Number of samples used to compute metric
+        data_type: INT
+
+  - name: CALIBRATION_CURVES
+    schema: ML
+    description: |
+      Calibration analysis for probability predictions.
+      Shows if "70% probability" actually occurs 70% of the time.
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ML
+      table: CALIBRATION_CURVES
+    columns:
+      - name: CALIBRATION_ID
+        description: Unique record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: MODEL_NAME
+        description: Name of the ML model
+        data_type: VARCHAR
+      - name: PREDICTED_PROB_BIN
+        description: Center of the probability bin (0.05, 0.15, ... 0.95)
+        data_type: FLOAT
+        synonyms: ["predicted probability", "probability bin"]
+      - name: ACTUAL_FREQUENCY
+        description: Actual occurrence rate in this bin
+        data_type: FLOAT
+        synonyms: ["actual rate", "true frequency", "observed rate"]
+      - name: BIN_COUNT
+        description: Number of predictions in this bin
+        data_type: INT
+
+  - name: PARTIAL_DEPENDENCE_CURVES
+    schema: ML
+    description: |
+      Partial dependence plots showing how each feature affects predictions.
+      Enables understanding of "How does haul distance affect cycle time?"
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ML
+      table: PARTIAL_DEPENDENCE_CURVES
+    columns:
+      - name: PDP_ID
+        description: Unique record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: MODEL_NAME
+        description: Name of the ML model
+        data_type: VARCHAR
+      - name: FEATURE_NAME
+        description: Feature being analyzed
+        data_type: VARCHAR
+      - name: FEATURE_VALUE
+        description: Feature value (x-axis)
+        data_type: FLOAT
+      - name: PREDICTED_VALUE
+        description: Average model prediction at this feature value
+        data_type: FLOAT
+      - name: LOWER_BOUND
+        description: 10th percentile prediction
+        data_type: FLOAT
+      - name: UPPER_BOUND
+        description: 90th percentile prediction
+        data_type: FLOAT
+
+  # ----- Cost/Value Tables -----
+  - name: COST_ASSUMPTIONS
+    schema: ML
+    description: |
+      Business cost assumptions for ML prediction outcomes.
+      Documents the dollar value of true positives, false positives, etc.
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ML
+      table: COST_ASSUMPTIONS
+    columns:
+      - name: ASSUMPTION_ID
+        description: Unique assumption record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: MODEL_NAME
+        description: Which ML model this assumption applies to
+        data_type: VARCHAR
+      - name: COST_TYPE
+        description: Prediction outcome type (TRUE_POSITIVE, FALSE_POSITIVE, etc.)
+        data_type: VARCHAR
+      - name: COST_CATEGORY
+        description: Cost category (FUEL, LABOR, EQUIPMENT, OPPORTUNITY)
+        data_type: VARCHAR
+      - name: UNIT_COST_USD
+        description: Dollar cost per unit
+        data_type: FLOAT
+        synonyms: ["unit cost", "cost per unit"]
+      - name: UNIT_DESCRIPTION
+        description: What the unit represents (per gallon, per hour, etc.)
+        data_type: VARCHAR
+      - name: COST_PER_EVENT_USD
+        description: Total cost per prediction outcome event
+        data_type: FLOAT
+        synonyms: ["cost per event", "event cost"]
+      - name: SIGN_CONVENTION
+        description: Whether this is a BENEFIT (savings) or COST (expense)
+        data_type: VARCHAR
+      - name: ASSUMPTION_SOURCE
+        description: Source of this cost assumption
+        data_type: VARCHAR
+      - name: NOTES
+        description: Explanation of the assumption
+        data_type: VARCHAR
+
+  - name: COST_MATRIX
+    schema: ML
+    description: |
+      Realized business costs from ML predictions by time period.
+      Shows actual dollars saved or lost from model deployment.
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ML
+      table: COST_MATRIX
+    columns:
+      - name: COST_ID
+        description: Unique cost record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: MODEL_NAME
+        description: Which ML model generated these predictions
+        data_type: VARCHAR
+      - name: PERIOD_START
+        description: Start of the analysis period
+        data_type: TIMESTAMP_NTZ
+      - name: PERIOD_END
+        description: End of the analysis period
+        data_type: TIMESTAMP_NTZ
+      - name: PERIOD_TYPE
+        description: Granularity (HOURLY, DAILY, WEEKLY, MONTHLY)
+        data_type: VARCHAR
+      - name: SITE_ID
+        description: Site (NULL = portfolio level)
+        data_type: VARCHAR
+        is_foreign_key: true
+        references:
+          table: PROJECT
+          column: PROJECT_ID
+      - name: TRUE_POSITIVE_COUNT
+        description: Number of correctly identified issues
+        data_type: INT
+        synonyms: ["caught issues", "detected correctly"]
+      - name: FALSE_POSITIVE_COUNT
+        description: Number of false alarms
+        data_type: INT
+        synonyms: ["false alarms", "incorrect alerts"]
+      - name: FALSE_NEGATIVE_COUNT
+        description: Number of missed issues
+        data_type: INT
+        synonyms: ["missed issues", "undetected problems"]
+      - name: TRUE_NEGATIVE_COUNT
+        description: Number of correctly ignored normal events
+        data_type: INT
+      - name: TRUE_POSITIVE_VALUE_USD
+        description: Dollar value saved from catching issues
+        data_type: FLOAT
+        synonyms: ["savings", "value saved", "money saved"]
+      - name: FALSE_POSITIVE_COST_USD
+        description: Dollar cost of investigating false alarms
+        data_type: FLOAT
+        synonyms: ["false alarm cost", "wasted investigation cost"]
+      - name: FALSE_NEGATIVE_COST_USD
+        description: Dollar cost of missed issues
+        data_type: FLOAT
+        synonyms: ["missed issue cost", "undetected loss"]
+      - name: NET_VALUE_USD
+        description: Net business value (savings minus costs)
+        data_type: FLOAT
+        synonyms: ["net value", "net savings", "total value", "ROI"]
+
+  - name: PROFIT_CURVES
+    schema: ML
+    description: |
+      Expected profit at different probability thresholds.
+      Helps determine optimal alert threshold for business value.
+    base_table:
+      database: CONSTRUCTION_GEO_DB
+      schema: ML
+      table: PROFIT_CURVES
+    columns:
+      - name: CURVE_ID
+        description: Unique record identifier
+        data_type: VARCHAR
+        is_primary_key: true
+      - name: MODEL_NAME
+        description: Which ML model this analysis applies to
+        data_type: VARCHAR
+      - name: SITE_ID
+        description: Site (NULL = portfolio level)
+        data_type: VARCHAR
+        is_foreign_key: true
+        references:
+          table: PROJECT
+          column: PROJECT_ID
+      - name: PROBABILITY_THRESHOLD
+        description: Alert threshold being analyzed (0.1 to 0.9)
+        data_type: FLOAT
+        synonyms: ["threshold", "cutoff"]
+      - name: EXPECTED_TP_RATE
+        description: Expected true positive rate (recall) at this threshold
+        data_type: FLOAT
+        synonyms: ["detection rate", "recall", "sensitivity"]
+      - name: EXPECTED_FP_RATE
+        description: Expected false positive rate at this threshold
+        data_type: FLOAT
+        synonyms: ["false alarm rate"]
+      - name: EXPECTED_NET_DAILY_VALUE_USD
+        description: Expected daily net value at this threshold
+        data_type: FLOAT
+        synonyms: ["expected value", "daily value", "expected profit"]
+      - name: IS_OPTIMAL_THRESHOLD
+        description: Whether this is the value-maximizing threshold
+        data_type: BOOLEAN
+        synonyms: ["optimal", "best threshold"]
+
+# ============================================================================
+# METRICS - Derived calculations for common questions
+# ============================================================================
+metrics:
+  - name: total_fuel_waste
+    description: Total gallons of fuel wasted in ghost cycles
+    expr: SUM(GHOST_CYCLE_PREDICTIONS.ESTIMATED_FUEL_WASTE_GAL)
+    synonyms: ["fuel wasted", "wasted fuel", "ghost cycle fuel"]
+
+  - name: total_fuel_waste_cost
+    description: Total dollar cost of fuel wasted in ghost cycles
+    expr: SUM(GHOST_CYCLE_PREDICTIONS.ESTIMATED_FUEL_WASTE_GAL) * 3.80
+    synonyms: ["fuel waste cost", "cost of fuel waste"]
+
+  - name: ghost_cycle_count
+    description: Number of ghost cycles detected
+    expr: COUNT(CASE WHEN GHOST_CYCLE_PREDICTIONS.IS_GHOST_CYCLE = TRUE THEN 1 END)
+    synonyms: ["ghost cycles detected", "number of ghost cycles"]
+
+  - name: choke_point_count
+    description: Number of choke points predicted
+    expr: COUNT(CASE WHEN CHOKE_POINT_PREDICTIONS.CHOKE_PROBABILITY > 0.5 THEN 1 END)
+    synonyms: ["choke points predicted", "predicted bottlenecks"]
+
+  - name: net_ml_value
+    description: Net business value generated by ML models
+    expr: SUM(COST_MATRIX.NET_VALUE_USD)
+    synonyms: ["ml value", "model value", "ai value", "ml savings"]
+
+  - name: detection_rate
+    description: Percentage of issues caught by ML models
+    expr: SUM(COST_MATRIX.TRUE_POSITIVE_COUNT) / NULLIF(SUM(COST_MATRIX.TRUE_POSITIVE_COUNT + COST_MATRIX.FALSE_NEGATIVE_COUNT), 0) * 100
+    synonyms: ["catch rate", "detection percentage"]
+
+  - name: false_alarm_rate
+    description: Percentage of alerts that were false positives
+    expr: SUM(COST_MATRIX.FALSE_POSITIVE_COUNT) / NULLIF(SUM(COST_MATRIX.TRUE_POSITIVE_COUNT + COST_MATRIX.FALSE_POSITIVE_COUNT), 0) * 100
+    synonyms: ["false positive rate", "false alarm percentage"]
+
+# ============================================================================
+# TIME DIMENSIONS
+# ============================================================================
+time_dimensions:
+  - name: prediction_time
+    description: When the ML prediction was made
+    expr: GHOST_CYCLE_PREDICTIONS.TIMESTAMP
+    
+  - name: period_start
+    description: Start of cost analysis period
+    expr: COST_MATRIX.PERIOD_START
+    
+  - name: period_end
+    description: End of cost analysis period
+    expr: COST_MATRIX.PERIOD_END
+
+# ============================================================================
+# VERIFIED QUERIES - Common questions with validated SQL
+# ============================================================================
+verified_queries:
+  - question: "How much money did ghost cycle detection save this month?"
+    sql: |
+      SELECT 
+        SUM(TRUE_POSITIVE_VALUE_USD) as SAVINGS,
+        SUM(FALSE_POSITIVE_COST_USD) as INVESTIGATION_COSTS,
+        SUM(FALSE_NEGATIVE_COST_USD) as MISSED_OPPORTUNITY_COSTS,
+        SUM(NET_VALUE_USD) as NET_VALUE
+      FROM CONSTRUCTION_GEO_DB.ML.COST_MATRIX
+      WHERE MODEL_NAME = 'GHOST_CYCLE_DETECTOR'
+        AND PERIOD_TYPE = 'MONTHLY'
+        AND PERIOD_END >= DATEADD(month, -1, CURRENT_DATE())
+    verified_by: terra_analytics_team
+    verified_at: "2024-01-15"
+
+  - question: "What are the top features driving ghost cycle predictions?"
+    sql: |
+      SELECT 
+        FEATURE_NAME,
+        SHAP_IMPORTANCE,
+        IMPORTANCE_RANK,
+        FEATURE_DIRECTION
+      FROM CONSTRUCTION_GEO_DB.ML.GLOBAL_FEATURE_IMPORTANCE
+      WHERE MODEL_NAME = 'GHOST_CYCLE_DETECTOR'
+      ORDER BY IMPORTANCE_RANK
+      LIMIT 10
+    verified_by: terra_analytics_team
+    verified_at: "2024-01-15"
+
+  - question: "Which site has the most ghost cycles?"
+    sql: |
+      SELECT 
+        p.PROJECT_NAME as SITE_NAME,
+        COUNT(*) as GHOST_CYCLE_COUNT,
+        SUM(ESTIMATED_FUEL_WASTE_GAL) as TOTAL_FUEL_WASTED,
+        SUM(ESTIMATED_FUEL_WASTE_GAL) * 3.80 as TOTAL_COST_USD
+      FROM CONSTRUCTION_GEO_DB.ML.GHOST_CYCLE_PREDICTIONS gcp
+      JOIN CONSTRUCTION_GEO_DB.ATOMIC.PROJECT p ON gcp.SITE_ID = p.PROJECT_ID
+      WHERE IS_GHOST_CYCLE = TRUE
+        AND TIMESTAMP >= DATEADD(month, -1, CURRENT_DATE())
+      GROUP BY p.PROJECT_NAME
+      ORDER BY GHOST_CYCLE_COUNT DESC
+    verified_by: terra_analytics_team
+    verified_at: "2024-01-15"
+
+  - question: "How reliable are the choke point predictions?"
+    sql: |
+      SELECT 
+        PREDICTED_PROB_BIN,
+        ACTUAL_FREQUENCY,
+        BIN_COUNT,
+        ABS(PREDICTED_PROB_BIN - ACTUAL_FREQUENCY) as CALIBRATION_ERROR
+      FROM CONSTRUCTION_GEO_DB.ML.CALIBRATION_CURVES
+      WHERE MODEL_NAME = 'CHOKE_POINT_PREDICTOR'
+      ORDER BY PREDICTED_PROB_BIN
+    verified_by: terra_analytics_team
+    verified_at: "2024-01-15"
+
+  - question: "What is the optimal alert threshold for ghost cycle detection?"
+    sql: |
+      SELECT 
+        PROBABILITY_THRESHOLD,
+        EXPECTED_TP_RATE as DETECTION_RATE,
+        EXPECTED_FP_RATE as FALSE_ALARM_RATE,
+        EXPECTED_NET_DAILY_VALUE_USD as EXPECTED_DAILY_VALUE,
+        IS_OPTIMAL_THRESHOLD
+      FROM CONSTRUCTION_GEO_DB.ML.PROFIT_CURVES
+      WHERE MODEL_NAME = 'GHOST_CYCLE_DETECTOR'
+        AND SITE_ID IS NULL  -- Portfolio level
+      ORDER BY EXPECTED_NET_DAILY_VALUE_USD DESC
+      LIMIT 5
+    verified_by: terra_analytics_team
+    verified_at: "2024-01-15"
+
+  - question: "Show me the portfolio-level ML value summary"
+    sql: |
+      SELECT 
+        MODEL_NAME,
+        SUM(TRUE_POSITIVE_COUNT) as ISSUES_CAUGHT,
+        SUM(FALSE_NEGATIVE_COUNT) as ISSUES_MISSED,
+        SUM(TRUE_POSITIVE_VALUE_USD) as SAVINGS_GENERATED,
+        SUM(FALSE_POSITIVE_COST_USD + FALSE_NEGATIVE_COST_USD) as COSTS_INCURRED,
+        SUM(NET_VALUE_USD) as NET_VALUE,
+        SUM(NET_VALUE_USD) * 12 as PROJECTED_ANNUAL_VALUE
+      FROM CONSTRUCTION_GEO_DB.ML.COST_MATRIX
+      WHERE PERIOD_TYPE = 'MONTHLY'
+      GROUP BY MODEL_NAME
+    verified_by: terra_analytics_team
+    verified_at: "2024-01-15"
+
+  - question: "How does haul distance affect cycle time predictions?"
+    sql: |
+      SELECT 
+        FEATURE_VALUE as HAUL_DISTANCE_MILES,
+        PREDICTED_VALUE as PREDICTED_CYCLE_TIME_MIN,
+        LOWER_BOUND,
+        UPPER_BOUND
+      FROM CONSTRUCTION_GEO_DB.ML.PARTIAL_DEPENDENCE_CURVES
+      WHERE MODEL_NAME = 'CYCLE_TIME_OPTIMIZER'
+        AND FEATURE_NAME = 'HAUL_DISTANCE_MILES'
+      ORDER BY FEATURE_VALUE
+    verified_by: terra_analytics_team
+    verified_at: "2024-01-15"
+
+  - question: "Which equipment has the most ghost cycles this week?"
+    sql: |
+      SELECT 
+        a.ASSET_NAME as EQUIPMENT_NAME,
+        a.ASSET_TYPE,
+        p.PROJECT_NAME as SITE_NAME,
+        COUNT(*) as GHOST_CYCLE_COUNT,
+        SUM(gcp.ESTIMATED_FUEL_WASTE_GAL) as FUEL_WASTED_GAL,
+        SUM(gcp.ESTIMATED_FUEL_WASTE_GAL) * 3.80 as COST_USD
+      FROM CONSTRUCTION_GEO_DB.ML.GHOST_CYCLE_PREDICTIONS gcp
+      JOIN CONSTRUCTION_GEO_DB.ATOMIC.ASSET a ON gcp.EQUIPMENT_ID = a.ASSET_ID
+      JOIN CONSTRUCTION_GEO_DB.ATOMIC.PROJECT p ON gcp.SITE_ID = p.PROJECT_ID
+      WHERE gcp.IS_GHOST_CYCLE = TRUE
+        AND gcp.TIMESTAMP >= DATEADD(week, -1, CURRENT_DATE())
+      GROUP BY a.ASSET_NAME, a.ASSET_TYPE, p.PROJECT_NAME
+      ORDER BY GHOST_CYCLE_COUNT DESC
+      LIMIT 10
+    verified_by: terra_analytics_team
+    verified_at: "2024-01-15"

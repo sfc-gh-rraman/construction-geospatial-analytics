@@ -90,7 +90,7 @@ This creates:
 
 **Option B - Via SnowCLI:**
 ```bash
-cd /Users/rraman/Documents/construction_demos/construction/construction_geospatial_analytics
+cd construction_geospatial_analytics
 snow stage copy cortex/construction_semantic_model.yaml @CONSTRUCTION_GEO_DB.CONSTRUCTION_GEO.SEMANTIC_MODELS
 ```
 
@@ -184,7 +184,7 @@ You should see:
 ### Step 9: Deploy SPCS Service
 
 ```bash
-cd /Users/rraman/Documents/construction_demos/construction/construction_geospatial_analytics/copilot/deploy
+cd construction_geospatial_analytics/copilot/deploy
 ./deploy.sh all
 ```
 

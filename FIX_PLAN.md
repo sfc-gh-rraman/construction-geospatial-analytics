@@ -1,7 +1,7 @@
 # TERRA Geospatial Analytics - Fix Plan for Junior Developer
 
 **Priority:** Complete in order - each step builds on previous  
-**Reference:** Compare against `/Users/rraman/Documents/construction_demos/construction/construction_capital_delivery/` (ATLAS) for patterns  
+**Reference:** Compare against `construction_capital_delivery/` (ATLAS) for patterns  
 **Estimated Time:** 2-3 days
 
 ---
@@ -1330,7 +1330,7 @@ Verify:
 ## Questions? 
 
 Refer to the ATLAS (Capital Delivery) demo at:
-`/Users/rraman/Documents/construction_demos/construction/construction_capital_delivery/`
+`construction_capital_delivery/`
 
 Especially:
 - `copilot/frontend/src/pages/PortfolioMap.tsx` - Real Leaflet implementation

@@ -110,13 +110,19 @@ Try asking: *"Show me Ghost Cycle patterns"*`,
     setShowThinking(prev => ({ ...prev, [assistantId]: true }))
 
     try {
+      // Build conversation history from previous messages (excluding welcome message and empty/streaming messages)
+      const conversationHistory = messages
+        .filter(m => m.id !== '1' && m.content && m.content.trim().length > 0 && !m.isStreaming)
+        .map(m => ({ role: m.role, content: m.content }))
+      
       // Try streaming endpoint first
       const response = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: content.trim(),
-          site_id: siteId
+          site_id: siteId,
+          conversation_history: conversationHistory.length > 0 ? conversationHistory : undefined
         })
       })
 

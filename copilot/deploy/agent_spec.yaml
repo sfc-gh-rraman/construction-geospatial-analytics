@@ -1,0 +1,23 @@
+models:
+  orchestration: "auto"
+orchestration: {}
+tools:
+  - tool_spec:
+      type: "cortex_analyst_text_to_sql"
+      name: "data_analyst"
+      description: "Use this tool to query construction equipment data, cycle times, fuel consumption, volume surveys, and site metrics. Best for numerical analysis, aggregations, and data-driven insights about equipment operations."
+  - tool_spec:
+      type: "cortex_search"
+      name: "equipment_docs"
+      description: "Search equipment documentation, Ghost Cycle detection protocols, maintenance procedures, and operational best practices. Use when users ask about procedures, specifications, troubleshooting steps, or need documentation references."
+tool_resources:
+  data_analyst:
+    execution_environment:
+      type: "warehouse"
+      warehouse: "COMPUTE_WH"
+    semantic_model_file: "@CONSTRUCTION_GEO_DB.CONSTRUCTION_GEO.SEMANTIC_MODELS/construction_semantic_model.yaml"
+  equipment_docs:
+    id_column: "DOC_ID"
+    max_results: 4
+    search_service: "CONSTRUCTION_GEO_DB.DOCS.EQUIPMENT_DOCS_SEARCH"
+    title_column: "DOCUMENT_TITLE"
